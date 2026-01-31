@@ -1,0 +1,25 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+/**
+ * Infinite ajax scroll js initialize template
+ *
+ * @var $block \Magento\Framework\View\Element\Template
+ */
+?>
+<script type="text/x-magento-init">
+    {
+        "*": {
+            "infiniteScroll": {
+                "productWrapper": ".products.list.items",
+                "productItem": ".product-item",
+                "nextBtn": ".pages-item-next a",
+                "pagination": ".pages",
+                "loaderImage": "<?php echo $block->getViewFileUrl('images/loader-2.gif'); ?>"
+        }
+    }
+}
+</script>
