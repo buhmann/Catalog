@@ -11,14 +11,15 @@
  */
 ?>
 <script type="text/x-magento-init">
-    {
-        "*": {
-            "infiniteScroll": {
-                "productWrapper": ".products.list.items",
-                "productItem": ".product-item",
-                "nextBtn": ".pages-item-next a",
-                "pagination": ".pages",
-                "loaderImage": "<?php echo $block->getViewFileUrl('images/loader-2.gif'); ?>"
+{
+    "*": {
+        "infiniteScroll": {
+            "productWrapper": ".products.list.items",
+            "productItem": ".product-item",
+            "nextBtn": ".pages-item-next a",
+            "pagination": ".pages",
+            "loaderImage": "<?php echo $block->getViewFileUrl('images/loader-2.gif'); ?>",
+            "saveHistory": false
         }
     }
 }
