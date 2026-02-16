@@ -10,6 +10,7 @@
         <referenceContainer name="content">
             <block class="Magento\Framework\View\Element\Template"
                    name="buhmann.infinite.scroll"
+                   ifconfig="catalog/layered_navigation/infinite_scroll"
                    template="Buhmann_Catalog::js/infinite-scroll.phtml" />
         </referenceContainer>
     </body>
