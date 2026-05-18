@@ -4,30 +4,156 @@
  */
 define([
     'jquery',
-    'mage/translate'
+    'mage/translate',
+    'jquery-ui-modules/widget',
+    'Magento_Catalog/js/catalog-add-to-cart'
 ], function($) {
     'use strict';
 
-    return function (options) {
-        let config = $.extend({
+    $.widget('buhmann.infiniteScroll', {
+        options: {
             productWrapper: '.products.list.items',
             productItem: '.product-item',
             nextBtn: '.pages-item-next a',
             pagination: '.pages',
             loaderImage: '',
-            saveHistory: false,
-        }, options);
+            infiniteScroll: false,
+            saveHistory: false
+        },
 
-        let isLoading = false;
-        const productWrapper = $(config.productWrapper);
-        const getLoaderHtml = function () {
-            if (config.loaderImage !== '') {
-                return '<div class="scroll-loader" style="text-align:center;"><img src="' + config.loaderImage + '" /></div>';
+        _create: function () {
+            this.isLoading = false;
+            this.productWrapper = $(this.options.productWrapper);
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentPage = parseInt(urlParams.get('p'));
+
+            if (this.options.saveHistory && currentPage > 1) {
+                this.loadPreviousPages(1, currentPage);
+            }
+
+            this._bindEvents();
+        },
+
+        _bindEvents: function () {
+            this._on(window, {
+                scroll: 'checkScrollPosition'
+            });
+        },
+
+        checkScrollPosition: function () {
+            const nextUrl = $(this.options.nextBtn).attr('href');
+            const lastItem = $(this.options.productWrapper + ' ' + this.options.productItem).last();
+
+            if (this.options.infiniteScroll && nextUrl && !this.isLoading && lastItem.length) {
+                const rect = lastItem[0].getBoundingClientRect();
+
+                if (rect.top <= window.innerHeight + 200) {
+                    this.loadNextPage(nextUrl);
+                }
+            }
+        },
+
+        loadNextPage: function (url) {
+            const self = this;
+            self.isLoading = true;
+
+            const pagination = $(self.options.pagination);
+            pagination.hide();
+
+            if (!$('.scroll-loader-bottom').length) {
+                self.productWrapper.after('<div class="scroll-loader-bottom">' + self._getLoaderHtml() + '</div>');
+            }
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function (res) {
+                    const html = $(res);
+                    const newProducts = html.find(self.options.productWrapper + ' ' + self.options.productItem);
+                    const newNextUrl = html.find(self.options.nextBtn).attr('href');
+
+                    if (newProducts.length) {
+                        self.productWrapper.append(newProducts);
+
+                        if (self.options.saveHistory) {
+                            window.history.pushState({}, '', url);
+                        }
+                        self._runContentUpdated(newProducts);
+                    }
+
+                    if (newNextUrl) {
+                        $(self.options.nextBtn).attr('href', newNextUrl);
+                    } else {
+                        $(self.options.nextBtn).remove();
+                    }
+
+                    $('.scroll-loader-bottom').remove();
+                    self.isLoading = false;
+                },
+                error: function () {
+                    $('.scroll-loader-bottom').remove();
+                    self.isLoading = false;
+                }
+            });
+        },
+
+        loadPreviousPages: function (pageToLoad, stopAtPage) {
+            if (pageToLoad >= stopAtPage) return;
+
+            const self = this;
+            self.isLoading = true;
+
+            const baseUrl = window.location.href.split('?')[0];
+            const params = new URLSearchParams(window.location.search);
+            params.set('p', pageToLoad);
+            const loadUrl = baseUrl + '?' + params.toString();
+
+            $.ajax({
+                url: loadUrl,
+                type: 'GET',
+                beforeSend: function() {
+                    $(self.options.pagination).hide();
+                    if (!$('.scroll-loader-top').length) {
+                        self.productWrapper.before('<div class="scroll-loader-top">' + self._getLoaderHtml() + '</div>');
+                    }
+                },
+                success: function (res) {
+                    const html = $(res);
+                    const products = html.find(self.options.productWrapper + ' ' + self.options.productItem);
+
+                    if (products.length) {
+                        const firstCurrentItem = self.productWrapper.find('[data-page="' + (pageToLoad + 1) + '"]').first();
+
+                        products.attr('data-page', pageToLoad);
+
+                        if (firstCurrentItem.length) {
+                            firstCurrentItem.before(products);
+                        } else {
+                            self.productWrapper.prepend(products);
+                        }
+
+                        self._runContentUpdated(products);
+                    }
+
+                    if (pageToLoad + 1 < stopAtPage) {
+                        self.loadPreviousPages(pageToLoad + 1, stopAtPage);
+                    } else {
+                        $('.scroll-loader-top').remove();
+                        self.isLoading = false;
+                    }
+                }
+            });
+        },
+
+        _getLoaderHtml: function () {
+            if (this.options.loaderImage !== '') {
+                return '<div class="scroll-loader" style="text-align:center;"><img src="' + this.options.loaderImage + '" /></div>';
             }
             return '<div class="scroll-loader" style="text-align:center;">' + $.mage.__('Loading...') + '</div>';
-        }
+        },
 
-        const runContentUpdated = function (products) {
+        _runContentUpdated: function (products) {
             $('body').trigger('contentUpdated');
 
             if (products && products.length) {
@@ -44,118 +170,7 @@ define([
                 });
             }
         }
+    });
 
-        const init = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const currentPage = parseInt(urlParams.get('p'));
-
-            if (config.saveHistory && currentPage > 1) {
-                loadPreviousPages(1, currentPage);
-            }
-        };
-
-        function loadPreviousPages(pageToLoad, stopAtPage) {
-            if (pageToLoad >= stopAtPage) return;
-
-            isLoading = true;
-            const baseUrl = window.location.href.split('?')[0];
-            const params = new URLSearchParams(window.location.search);
-            params.set('p', pageToLoad);
-            const loadUrl = baseUrl + '?' + params.toString();
-
-            $.ajax({
-                url: loadUrl,
-                type: 'GET',
-                beforeSend: function() {
-                    $(config.pagination).hide();
-                    if (!$('.scroll-loader-top').length) {
-                        productWrapper.before('<div class="scroll-loader-top">' + getLoaderHtml() + '</div>');
-                    }
-                },
-                success: function (res) {
-                    const html = $(res);
-                    const products = html.find(config.productWrapper + ' ' + config.productItem);
-
-                    if (products.length) {
-                        const firstCurrentItem = productWrapper.find('[data-page="' + (pageToLoad + 1) + '"]').first();
-
-                        products.attr('data-page', pageToLoad);
-
-                        if (firstCurrentItem.length) {
-                            firstCurrentItem.before(products);
-                        } else {
-                            productWrapper.prepend(products);
-                        }
-
-                        runContentUpdated(products);
-                    }
-
-                    if (pageToLoad + 1 < stopAtPage) {
-                        loadPreviousPages(pageToLoad + 1, stopAtPage);
-                    } else {
-                        $('.scroll-loader-top').remove();
-                        isLoading = false;
-                    }
-                }
-            });
-        }
-
-        function loadNextPage(url) {
-            isLoading = true;
-            const pagination = $(config.pagination);
-
-            pagination.hide();
-
-            if (!$('.scroll-loader-bottom').length) {
-                productWrapper.after('<div class="scroll-loader-bottom">' + getLoaderHtml() + '</div>');
-            }
-
-            $.ajax({
-                url: url,
-                type: 'GET',
-                success: function (res) {
-                    const html = $(res);
-                    const newProducts = html.find(config.productWrapper + ' ' + config.productItem);
-                    const newNextUrl = html.find(config.nextBtn).attr('href');
-
-                    if (newProducts.length) {
-                        productWrapper.append(newProducts);
-
-                        if (config.saveHistory) {
-                            window.history.pushState({}, '', url);
-                        }
-                        runContentUpdated(newProducts);
-                    }
-
-                    if (newNextUrl) {
-                        $(config.nextBtn).attr('href', newNextUrl);
-                    } else {
-                        $(config.nextBtn).remove();
-                    }
-
-                    $('.scroll-loader-bottom').remove();
-                    isLoading = false;
-                },
-                error: function () {
-                    $('.scroll-loader-bottom').remove();
-                    isLoading = false;
-                }
-            });
-        }
-
-        $(window).on('scroll', function () {
-            const nextUrl = $(config.nextBtn).attr('href');
-            const lastItem = $(config.productWrapper + ' ' + config.productItem).last();
-
-            if (nextUrl && !isLoading && lastItem.length) {
-                const rect = lastItem[0].getBoundingClientRect();
-
-                if (rect.top <= window.innerHeight + 200) {
-                    loadNextPage(nextUrl);
-                }
-            }
-        });
-
-        init();
-    };
+    return $.buhmann.infiniteScroll;
 });
