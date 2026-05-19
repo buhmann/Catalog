@@ -5,10 +5,15 @@
  */
 
 /**
- * Infinite ajax scroll js initialize template
+ * Layered navigation js initialize template
  *
  * @var $block \Magento\Framework\View\Element\Template
  */
+
+/** @var \Buhmann\Catalog\ViewModel\LayeredNavigation $viewModel */
+$viewModel = $block->getData('config');
+$isInfiniteScroll = $viewModel && $viewModel->isInfiniteScroll();
+$isSaveScrollHistory = $viewModel && $viewModel->isSaveScrollHistory();
 ?>
 <script type="text/x-magento-init">
 {
@@ -19,7 +24,8 @@
             "nextBtn": ".pages-item-next a",
             "pagination": ".pages",
             "loaderImage": "<?php echo $block->getViewFileUrl('images/loader-2.gif'); ?>",
-            "saveHistory": false
+            "infiniteScroll": <?= $isInfiniteScroll ? 'true' : 'false' ?>,
+            "saveHistory": <?= $isSaveScrollHistory ? 'true' : 'false' ?>
         }
     }
 }

@@ -18,7 +18,7 @@ define([
             pagination: '.pages',
             loaderImage: '',
             infiniteScroll: false,
-            saveHistory: false
+            saveHistory: false,
         },
 
         _create: function () {
@@ -55,45 +55,44 @@ define([
         },
 
         loadNextPage: function (url) {
-            const self = this;
-            self.isLoading = true;
+            this.isLoading = true;
 
-            const pagination = $(self.options.pagination);
+            const pagination = $(this.options.pagination);
             pagination.hide();
 
             if (!$('.scroll-loader-bottom').length) {
-                self.productWrapper.after('<div class="scroll-loader-bottom">' + self._getLoaderHtml() + '</div>');
+                this.productWrapper.after('<div class="scroll-loader-bottom">' + this._getLoaderHtml() + '</div>');
             }
 
             $.ajax({
                 url: url,
                 type: 'GET',
-                success: function (res) {
+                success: (res) => {
                     const html = $(res);
-                    const newProducts = html.find(self.options.productWrapper + ' ' + self.options.productItem);
-                    const newNextUrl = html.find(self.options.nextBtn).attr('href');
+                    const newProducts = html.find(this.options.productWrapper + ' ' + this.options.productItem);
+                    const newNextUrl = html.find(this.options.nextBtn).attr('href');
 
                     if (newProducts.length) {
-                        self.productWrapper.append(newProducts);
+                        this.productWrapper.append(newProducts);
 
-                        if (self.options.saveHistory) {
+                        if (this.options.saveHistory) {
                             window.history.pushState({}, '', url);
                         }
-                        self._runContentUpdated(newProducts);
+                        this._runContentUpdated(newProducts);
                     }
 
                     if (newNextUrl) {
-                        $(self.options.nextBtn).attr('href', newNextUrl);
+                        $(this.options.nextBtn).attr('href', newNextUrl);
                     } else {
-                        $(self.options.nextBtn).remove();
+                        $(this.options.nextBtn).remove();
                     }
 
                     $('.scroll-loader-bottom').remove();
-                    self.isLoading = false;
+                    this.isLoading = false;
                 },
-                error: function () {
+                error: () => {
                     $('.scroll-loader-bottom').remove();
-                    self.isLoading = false;
+                    this.isLoading = false;
                 }
             });
         },
@@ -101,8 +100,7 @@ define([
         loadPreviousPages: function (pageToLoad, stopAtPage) {
             if (pageToLoad >= stopAtPage) return;
 
-            const self = this;
-            self.isLoading = true;
+            this.isLoading = true;
 
             const baseUrl = window.location.href.split('?')[0];
             const params = new URLSearchParams(window.location.search);
@@ -112,35 +110,35 @@ define([
             $.ajax({
                 url: loadUrl,
                 type: 'GET',
-                beforeSend: function() {
-                    $(self.options.pagination).hide();
+                beforeSend: () => {
+                    $(this.options.pagination).hide();
                     if (!$('.scroll-loader-top').length) {
-                        self.productWrapper.before('<div class="scroll-loader-top">' + self._getLoaderHtml() + '</div>');
+                        this.productWrapper.before('<div class="scroll-loader-top">' + this._getLoaderHtml() + '</div>');
                     }
                 },
-                success: function (res) {
+                success: (res) => {
                     const html = $(res);
-                    const products = html.find(self.options.productWrapper + ' ' + self.options.productItem);
+                    const products = html.find(this.options.productWrapper + ' ' + this.options.productItem);
 
                     if (products.length) {
-                        const firstCurrentItem = self.productWrapper.find('[data-page="' + (pageToLoad + 1) + '"]').first();
+                        const firstCurrentItem = this.productWrapper.find('[data-page="' + (pageToLoad + 1) + '"]').first();
 
                         products.attr('data-page', pageToLoad);
 
                         if (firstCurrentItem.length) {
                             firstCurrentItem.before(products);
                         } else {
-                            self.productWrapper.prepend(products);
+                            this.productWrapper.prepend(products);
                         }
 
-                        self._runContentUpdated(products);
+                        this._runContentUpdated(products);
                     }
 
                     if (pageToLoad + 1 < stopAtPage) {
-                        self.loadPreviousPages(pageToLoad + 1, stopAtPage);
+                        this.loadPreviousPages(pageToLoad + 1, stopAtPage);
                     } else {
                         $('.scroll-loader-top').remove();
-                        self.isLoading = false;
+                        this.isLoading = false;
                     }
                 }
             });
