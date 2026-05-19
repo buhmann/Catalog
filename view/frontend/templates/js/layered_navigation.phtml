@@ -12,8 +12,6 @@
 
 /** @var \Buhmann\Catalog\ViewModel\LayeredNavigation $viewModel */
 $viewModel = $block->getData('config');
-$isInfiniteScroll = $viewModel && $viewModel->isInfiniteScroll();
-$isSaveScrollHistory = $viewModel && $viewModel->isSaveScrollHistory();
 ?>
 <script type="text/x-magento-init">
 {
@@ -24,8 +22,8 @@ $isSaveScrollHistory = $viewModel && $viewModel->isSaveScrollHistory();
             "nextBtn": ".pages-item-next a",
             "pagination": ".pages",
             "loaderImage": "<?php echo $block->getViewFileUrl('images/loader-2.gif'); ?>",
-            "infiniteScroll": <?= $isInfiniteScroll ? 'true' : 'false' ?>,
-            "saveHistory": <?= $isSaveScrollHistory ? 'true' : 'false' ?>
+            "infiniteScroll": <?= $viewModel && $viewModel->isInfiniteScroll() ? 'true' : 'false' ?>,
+            "saveHistory": <?= $viewModel && $viewModel->isSaveScrollHistory() ? 'true' : 'false' ?>
         }
     }
 }

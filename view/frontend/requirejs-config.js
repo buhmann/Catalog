@@ -5,7 +5,7 @@
 var config = {
     map: {
         '*': {
-            'infiniteScroll': 'Buhmann_Catalog/js/layered-navigation'
+            'infiniteScroll': 'Buhmann_Catalog/js/infinite-scroll'
         }
     },
     config: {
