@@ -1,0 +1,15 @@
+& when (@media-common = true) {
+    .products {
+        &.list.items {
+            &.loading {
+                opacity: .5;
+            }
+        }
+        &-infinite-scroll {
+            .toolbar .pages,
+            .products.wrapper ~ .toolbar-products .pages {
+                display: none;
+            }
+        }
+    }
+}

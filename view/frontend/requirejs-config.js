@@ -7,5 +7,12 @@ var config = {
         '*': {
             'infiniteScroll': 'Buhmann_Catalog/js/layered-navigation'
         }
+    },
+    config: {
+        mixins: {
+            'Magento_Catalog/js/product/list/toolbar': {
+                'Buhmann_Catalog/js/product/list/toolbar': true
+            }
+        },
     }
 };

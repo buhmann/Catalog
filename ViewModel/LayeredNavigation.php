@@ -50,4 +50,17 @@ class LayeredNavigation implements ArgumentInterface
             ScopeInterface::SCOPE_STORE
         );
     }
+
+    /**
+     * Is Ajax Navigation is enabled
+     *
+     * @return bool
+     */
+    public function isAjaxNavEnabled(): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            'catalog/layered_navigation/ajax_layered_nav',
+            ScopeInterface::SCOPE_STORE
+        );
+    }
 }
