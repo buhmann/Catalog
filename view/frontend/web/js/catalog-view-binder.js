@@ -10,10 +10,13 @@ define([
             options: {
                 orderParam: 'product_list_order',
                 limitParam: 'product_list_limit',
+                pageParam: 'p',
             },
             selectors: {
                 productWrapper: '.products.list.items',
                 productGrid: '.products.products-grid, .products.products-list',
+                productItem: '.product-item',
+                nextBtn: '.pages-item-next a',
                 toolbar: '.toolbar-products',
                 pagination: '.pages',
                 modes: '.modes',
@@ -47,13 +50,19 @@ define([
                 urlParams.delete('_');
                 urlParams.delete('isAjax');
 
-                // Handle Infinite Scroll / Load More append action
-                if (data.append) {
+                const options = data.options || { mode: 'replace' };
+
+                if (options.mode === 'append') {
                     self.appendProducts(responseHtml, data.html);
                     return;
                 }
 
-                // Execute granular DOM updates
+                if (options.mode === 'prepend') {
+                    self.prependProducts(responseHtml, data.html, urlParams);
+                    return;
+                }
+
+                // Default 'replace' mode: Execute granular DOM updates for full collection reload
                 self.updateProductsGrid(responseHtml);
                 self.updatePagination();
                 self.updateDisplayElements(responseHtml);
@@ -66,15 +75,54 @@ define([
         },
 
         /**
-         * Appends new products to the wrapper (Infinite Scroll / Load More fallback)
+         * Appends new products to the wrapper and synchronizes next page controls
          * @param {jQuery} responseHtml
          * @param {String} rawHtml
          */
         appendProducts: function (responseHtml, rawHtml) {
             const $wrapper = $(this.selectors.productWrapper);
-            if ($wrapper.length) {
-                $wrapper.append(responseHtml.find(this.selectors.productWrapper).html() || rawHtml);
+            const incomingProducts = responseHtml.find(this.selectors.productWrapper + ' ' + this.selectors.productItem);
+            const $newProducts = incomingProducts.length ? incomingProducts : $(rawHtml).find(this.selectors.productItem);
+
+            if ($wrapper.length && $newProducts.length) {
+                $wrapper.append($newProducts);
+                this.updatePagination(responseHtml);
+                this.reinitSwatches();
             }
+
+            const $currentNextBtn = $(this.selectors.nextBtn);
+            const newNextUrl = responseHtml.find(this.selectors.nextBtn).attr('href');
+
+            if (newNextUrl && $currentNextBtn.length) {
+                $currentNextBtn.attr('href', newNextUrl);
+            } else {
+                $currentNextBtn.remove();
+            }
+
+            $('body').trigger('contentUpdated');
+            document.body.dispatchEvent(new CustomEvent('contentUpdated'));
+        },
+
+        /**
+         * Prepends backward history products directly to the top of the container wrapper
+         * @param {jQuery} responseHtml
+         * @param {String} rawHtml
+         * @param {URLSearchParams} urlParams
+         */
+        prependProducts: function (responseHtml, rawHtml, urlParams) {
+            const $wrapper = $(this.selectors.productWrapper);
+            const incomingProducts = responseHtml.find(this.selectors.productWrapper + ' ' + this.selectors.productItem);
+            const $newProducts = incomingProducts.length ? incomingProducts : $(rawHtml).find(this.selectors.productItem);
+
+            if ($wrapper.length && $newProducts.length) {
+                const currentPageNum = parseInt(urlParams.get(this.options.pageParam)) || 1;
+                $newProducts.attr('data-page', currentPageNum);
+
+                $wrapper.prepend($newProducts);
+                this.updatePagination(responseHtml);
+                this.reinitSwatches();
+            }
+
             $('body').trigger('contentUpdated');
             document.body.dispatchEvent(new CustomEvent('contentUpdated'));
         },
@@ -104,7 +152,6 @@ define([
          */
         updatePagination: function () {
             if (!navigationPool.paginationHtml()) {
-                $(this.selectors.toolbar).find(this.selectors.pagination).hide();
                 return;
             }
 

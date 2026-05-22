@@ -1,6 +1,7 @@
 <?php
 namespace Buhmann\Catalog\Plugin\Controller;
 
+use Buhmann\Catalog\ViewModel\LayeredNavigation;
 use Magento\Catalog\Controller\Category\View as CategoryViewController;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\View\Result\Page;
@@ -31,18 +32,45 @@ class CategoryView
     private SwatchHelper $swatchHelper;
 
     /**
+     * @var LayeredNavigation
+     */
+    private LayeredNavigation $layeredNavigationViewModel;
+
+    /**
      * @param JsonFactory $jsonFactory
      * @param RequestInterface $request
      * @param SwatchHelper $swatchHelper
+     * @param LayeredNavigation $layeredNavigationViewModel
      */
     public function __construct(
         JsonFactory $jsonFactory,
         RequestInterface $request,
-        SwatchHelper $swatchHelper
+        SwatchHelper $swatchHelper,
+        LayeredNavigation $layeredNavigationViewModel
     ) {
         $this->jsonFactory = $jsonFactory;
         $this->request = $request;
         $this->swatchHelper = $swatchHelper;
+        $this->layeredNavigationViewModel = $layeredNavigationViewModel;
+    }
+
+    /**
+     * @param CategoryViewController $subject
+     * @param mixed $result
+     * @return mixed
+     */
+    public function afterExecute(CategoryViewController $subject, $result)
+    {
+        if ($result instanceof Page) {
+            if ($this->layeredNavigationViewModel->isInfiniteScroll()) {
+                $result->getConfig()->addBodyClass('products-infinite-scroll');
+            }
+            if ($this->layeredNavigationViewModel->isAjaxNavEnabled()) {
+                $result->getConfig()->addBodyClass('ajax-layered-navigation');
+            }
+        }
+
+        return $result;
     }
 
     /**

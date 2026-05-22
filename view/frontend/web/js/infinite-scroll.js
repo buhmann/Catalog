@@ -5,9 +5,10 @@
 define([
     'jquery',
     'mage/translate',
+    'Buhmann_Catalog/js/navigation-pool',
     'jquery-ui-modules/widget',
     'Magento_Catalog/js/catalog-add-to-cart'
-], function($) {
+], function($, $t, navigationPool) {
     'use strict';
 
     $.widget('buhmann.infiniteScroll', {
@@ -17,9 +18,11 @@ define([
             productItem: '.product-item',
             nextBtn: '.pages-item-next a',
             pagination: '.pages',
+            loaderTopWrapper: '.scroll-loader-top',
+            loaderBottomWrapper: '.scroll-loader-bottom',
             loaderImage: '',
             infiniteScroll: false,
-            saveHistory: false,
+            savePageHistory: false,
             pageParam: 'p',
         },
 
@@ -33,8 +36,8 @@ define([
                 $('body').addClass(this.options.bodyClass);
             }
 
-            if (this.options.saveHistory && currentPage > 1) {
-                this.loadPreviousPages(1, currentPage);
+            if (this.options.savePageHistory && currentPage > 1) {
+                this.loadPreviousPages(currentPage - 1, currentPage);
             }
 
             this._bindEvents();
@@ -45,6 +48,12 @@ define([
 
             $(window).on('load scroll.infiniteScroll', () => {
                 this.checkScrollPosition();
+            });
+
+            navigationPool.productsHtml.subscribe(() => {
+                $(this.options.loaderBottomWrapper).remove();
+                $(this.options.loaderTopWrapper).remove();
+                this.isLoading = false;
             });
         },
 
@@ -76,89 +85,65 @@ define([
          * @param {String} url
          */
         loadNextPage: function (url) {
-            if (!url) return;
+            if (!url || this.isLoading) return;
             this.isLoading = true;
 
-            if (!$('.scroll-loader-bottom').length) {
-                $(this.options.productWrapper).after('<div class="scroll-loader-bottom">' + this._getLoaderHtml() + '</div>');
+            if (!$(this.options.loaderBottomWrapper).length) {
+                $(this.options.productWrapper).after(
+                    '<div class="' + this.options.loaderBottomWrapper.replace(/\./g, "") + '">' +
+                        this._getLoaderHtml() +
+                    '</div>'
+                );
             }
 
-            $.ajax({
-                url: url,
-                type: 'GET',
-                success: (res) => {
-                    const html = $(res);
-                    const newProducts = html.find(this.options.productWrapper + ' ' + this.options.productItem);
-                    const newNextUrl = html.find(this.options.nextBtn).attr('href');
+            const excludeParams = [];
+            if (!this.options.savePageHistory) {
+                excludeParams.push(this.options.pageParam);
+            }
 
-                    if (newProducts.length) {
-                        $(this.options.productWrapper).append(newProducts);
-
-                        if (this.options.saveHistory) {
-                            window.history.pushState({}, '', url);
-                        }
-                        this._runContentUpdated(newProducts);
-                    }
-
-                    if (newNextUrl) {
-                        $(this.options.nextBtn).attr('href', newNextUrl);
-                    } else {
-                        $(this.options.nextBtn).remove();
-                    }
-
-                    $('.scroll-loader-bottom').remove();
-                    this.isLoading = false;
-                },
-                error: () => {
-                    $('.scroll-loader-bottom').remove();
-                    this.isLoading = false;
-                }
+            navigationPool.navigate(url, {
+                mode: 'append',
+                excludeUrlParams: excludeParams
             });
         },
 
+        /**
+         * Reconstitutes previous pages history backwards from current page down to page 1
+         * @param {Number|String} pageToLoad
+         * @param {Number|String} stopAtPage
+         */
         loadPreviousPages: function (pageToLoad, stopAtPage) {
-            if (pageToLoad >= stopAtPage) return;
+            if (pageToLoad < 1) {
+                $(this.options.loaderTopWrapper).remove();
+                this.isLoading = false;
+                return;
+            }
 
             this.isLoading = true;
+
+            if (!$(this.options.loaderTopWrapper).length) {
+                $(this.options.productWrapper).before(
+                    '<div class="' + this.options.loaderTopWrapper.replace(/\./g, "") + '">' +
+                        this._getLoaderHtml() +
+                    '</div>'
+                );
+            }
 
             const baseUrl = window.location.href.split('?')[0];
             const params = new URLSearchParams(window.location.search);
             params.set(this.options.pageParam, pageToLoad);
             const loadUrl = baseUrl + '?' + params.toString();
 
-            $.ajax({
-                url: loadUrl,
-                type: 'GET',
-                beforeSend: () => {
-                    if (!$('.scroll-loader-top').length) {
-                        $(this.options.productWrapper).before('<div class="scroll-loader-top">' + this._getLoaderHtml() + '</div>');
-                    }
-                },
-                success: (res) => {
-                    const html = $(res);
-                    const products = html.find(this.options.productWrapper + ' ' + this.options.productItem);
+            const currentSubscription = navigationPool.productsHtml.subscribe(() => {
+                currentSubscription.dispose();
+                setTimeout(() => {
+                    this.loadPreviousPages(pageToLoad - 1, stopAtPage);
+                }, 10);
+            });
 
-                    if (products.length) {
-                        const firstCurrentItem = $(this.options.productWrapper).find('[data-page="' + (pageToLoad + 1) + '"]').first();
-
-                        products.attr('data-page', pageToLoad);
-
-                        if (firstCurrentItem.length) {
-                            firstCurrentItem.before(products);
-                        } else {
-                            $(this.options.productWrapper).prepend(products);
-                        }
-
-                        this._runContentUpdated(products);
-                    }
-
-                    if (pageToLoad + 1 < stopAtPage) {
-                        this.loadPreviousPages(pageToLoad + 1, stopAtPage);
-                    } else {
-                        $('.scroll-loader-top').remove();
-                        this.isLoading = false;
-                    }
-                }
+            navigationPool.navigate(loadUrl, {
+                mode: 'prepend',
+                excludeUrlParams: [this.options.pageParam]
             });
         },
 

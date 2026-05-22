@@ -14,12 +14,20 @@ define([
 
     /**
      * @param {String} url
-     * @param isAppend
+     * @param {Object} options {
+     *     mode: 'replace', // Possible values: 'replace', 'append', 'prepend'
+     *     excludeUrlParams: [] // Array of query parameter keys to strip from browser history
+     * }
      */
-    NavigationPool.prototype.navigate = function (url, isAppend) {
+    NavigationPool.prototype.navigate = function (url, options = {}) {
         if (this.isLoading()) {
             return;
         }
+
+        const settings = Object.assign({
+            mode: 'replace',
+            excludeUrlParams: []
+        }, options);
 
         this.isLoading(true);
         $('body').addClass('ajax-loading');
@@ -41,14 +49,27 @@ define([
                     this.productsHtml({
                         html: response.products,
                         url: url,
-                        append: !!isAppend
+                        options: settings
                     });
 
-                    if (window.history && window.history.pushState) {
+                    if (window.history) {
                         const cleanUrlObj = new URL(url, window.location.origin);
                         cleanUrlObj.searchParams.delete('isAjax');
                         cleanUrlObj.searchParams.delete('_');
-                        window.history.pushState({}, '', cleanUrlObj.toString());
+
+                        if (Array.isArray(settings.excludeUrlParams)) {
+                            settings.excludeUrlParams.forEach(function (param) {
+                                cleanUrlObj.searchParams.delete(param);
+                            });
+                        }
+
+                        const targetHistoryUrl = cleanUrlObj.toString();
+
+                        if (settings.mode === 'replace' && window.history.pushState) {
+                            window.history.pushState({}, '', targetHistoryUrl);
+                        } else if (window.history.replaceState) {
+                            window.history.replaceState({}, '', targetHistoryUrl);
+                        }
                     }
                 } else {
                     window.location.href = url;

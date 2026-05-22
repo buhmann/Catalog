@@ -13,6 +13,23 @@
 /** @var \Buhmann\Catalog\ViewModel\LayeredNavigation $viewModel */
 $viewModel = $block->getData('config');
 ?>
+<?php /** @var \Magento\Framework\View\Element\Template $block */ ?>
+<div style="display:none;" data-bind="scope: 'catalogViewBinder'"></div>
+
+<script type="text/x-magento-init">
+    {
+        "[data-bind=\"scope: 'catalogViewBinder'\"]": {
+            "Magento_Ui/js/core/app": {
+                "components": {
+                    "catalogViewBinder": {
+                        "component": "Buhmann_Catalog/js/catalog-view-binder"
+                    }
+                }
+            }
+        }
+    }
+</script>
+
 <script type="text/x-magento-init">
 {
     "*": {
@@ -23,7 +40,7 @@ $viewModel = $block->getData('config');
             "pagination": ".pages",
             "loaderImage": "<?php echo $block->getViewFileUrl('images/loader-2.gif'); ?>",
             "infiniteScroll": <?= $viewModel && $viewModel->isInfiniteScroll() ? 'true' : 'false' ?>,
-            "saveHistory": <?= $viewModel && $viewModel->isSaveScrollHistory() ? 'true' : 'false' ?>
+            "savePageHistory": <?= $viewModel && $viewModel->isSaveScrollHistory() ? 'true' : 'false' ?>
         }
     }
 }

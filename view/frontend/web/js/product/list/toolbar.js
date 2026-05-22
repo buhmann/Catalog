@@ -25,7 +25,7 @@ define([
                         e.stopImmediatePropagation();
                         const url = $(this).attr('href');
                         if (url) {
-                            navigationPool.navigate(url, false);
+                            navigationPool.navigate(url);
                         }
                     });
 
@@ -50,7 +50,7 @@ define([
                             const targetUrl = baseUrl + (queryString.length ? '?' + queryString : '');
 
                             self.options.url = targetUrl;
-                            navigationPool.navigate(targetUrl, false);
+                            navigationPool.navigate(targetUrl);
                         }
                     });
 
@@ -120,7 +120,7 @@ define([
                 if (!this.options.ajaxNavigation) {
                     return this._super(url);
                 }
-                navigationPool.navigate(url, false);
+                navigationPool.navigate(url);
             }
         });
 
