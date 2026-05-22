@@ -9,4 +9,7 @@
     <type name="Magento\Catalog\Block\Product\ProductList\Toolbar">
         <plugin name="buhmann_catalog_toolbar_ajax_options" type="Buhmann\Catalog\Plugin\Block\Product\ProductList\Toolbar"/>
     </type>
+    <type name="Magento\Catalog\Controller\Category\View">
+        <plugin name="buhmann_catalog_ajax_category_view_json" type="Buhmann\Catalog\Plugin\Controller\CategoryView" />
+    </type>
 </config>

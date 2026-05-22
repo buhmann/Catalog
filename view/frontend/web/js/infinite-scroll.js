@@ -20,13 +20,14 @@ define([
             loaderImage: '',
             infiniteScroll: false,
             saveHistory: false,
+            pageParam: 'p',
         },
 
         _create: function () {
             this.isLoading = false;
 
             const urlParams = new URLSearchParams(window.location.search);
-            const currentPage = parseInt(urlParams.get('p'));
+            const currentPage = parseInt(urlParams.get(this.options.pageParam));
 
             if (this.options.infiniteScroll) {
                 $('body').addClass(this.options.bodyClass);
@@ -70,7 +71,12 @@ define([
             }
         },
 
+        /**
+         * Fetches next page and strictly separates visual history state from requested URL
+         * @param {String} url
+         */
         loadNextPage: function (url) {
+            if (!url) return;
             this.isLoading = true;
 
             if (!$('.scroll-loader-bottom').length) {
@@ -117,7 +123,7 @@ define([
 
             const baseUrl = window.location.href.split('?')[0];
             const params = new URLSearchParams(window.location.search);
-            params.set('p', pageToLoad);
+            params.set(this.options.pageParam, pageToLoad);
             const loadUrl = baseUrl + '?' + params.toString();
 
             $.ajax({
