@@ -1,6 +1,6 @@
 {
     "name": "buhmann/module-catalog",
-    "description": "Magento 2 Catalog Module",
+    "description": "Magento 2 Advanced Catalog Module",
     "type": "magento2-module",
     "license": [
         "OSL-3.0",

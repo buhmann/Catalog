@@ -1,9 +1,10 @@
-# Magento 2 Buhmann Catalog
+# Magento 2 Advanced Catalog
 <img src="https://img.shields.io/badge/magento-v2.4.7-green?style=plastic&logo=magento">
-Adding functionality to the catalog module
+Expanding the functionality of the catalog page settings
 
 ## Main Functionalities
- - Add Infinity scroll for category products list
+ - Ajax Toolbar
+ - Infinity scroll for category products list
 
 ## Installation
 This module is available on [Github](https://github.com/buhmann/Catalog).
