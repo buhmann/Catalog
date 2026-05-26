@@ -15,4 +15,7 @@
     <type name="Smile\ElasticsuiteCatalog\Block\Navigation\Renderer\Category">
         <plugin name="buhmann_catalog_category_ajax_renderer" type="Buhmann\Catalog\Plugin\Block\Navigation\Renderer\Category" />
     </type>
+    <type name="Smile\ElasticsuiteCore\Search\Request\ContainerConfiguration">
+        <plugin name="buhmann_catalog_force_container_bucket_size" type="Buhmann\Catalog\Plugin\Search\Request\ContainerConfiguration" />
+    </type>
 </config>
