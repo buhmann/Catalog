@@ -63,4 +63,19 @@ class LayeredNavigation implements ArgumentInterface
             ScopeInterface::SCOPE_STORE
         );
     }
+
+    /**
+     * Get maximum visible filter items count
+     *
+     * @return int
+     */
+    public function getMaxFilterItems(): int
+    {
+        $maxSize = $this->scopeConfig->getValue(
+            'catalog/layered_navigation/max_filter_items',
+            ScopeInterface::SCOPE_STORE
+        );
+
+        return $maxSize ? (int)$maxSize : 10;
+    }
 }

@@ -1,0 +1,18 @@
+<ol class="items" data-bind="foreach: items">
+    <li class="item">
+        <a data-bind="visible: $data.count > 0, attr: { href: url }, click: $parent.handleNavigation.bind($parent)">
+            <input type="checkbox" data-bind="visible: $parent.isMultipleSelectEnabled, attr: { checked: is_selected }" />
+            <span class="label" data-bind="html: label"></span>
+            <span class="count" data-bind="visible: $parent.shouldDisplayProductCount">
+                <span data-bind="text: count"></span>
+            </span>
+        </a>
+
+        <span class="disabled-item" data-bind="visible: $data.count <= 0">
+            <span class="label" data-bind="html: label"></span>
+            <span class="count" data-bind="visible: $parent.shouldDisplayProductCount">
+                <span data-bind="text: count"></span>
+            </span>
+        </span>
+    </li>
+</ol>

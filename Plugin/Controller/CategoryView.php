@@ -1,4 +1,5 @@
 <?php
+
 namespace Buhmann\Catalog\Plugin\Controller;
 
 use Buhmann\Catalog\ViewModel\LayeredNavigation;
@@ -144,6 +145,8 @@ class CategoryView
             'label'       => __($filter->getName())->render(),
             'type'        => 'text',
             'sliderConfig'=> null,
+            'maxSize'     => $this->layeredNavigationViewModel->getMaxFilterItems(),
+            'hasMoreItems'=> count($filter->getItems()) > $this->layeredNavigationViewModel->getMaxFilterItems(),
             'items'       => []
         ];
 
@@ -163,9 +166,8 @@ class CategoryView
 
                 $configMethod = new \ReflectionMethod(get_class($sliderBlock), 'getConfig');
                 $configMethod->setAccessible(true);
-                $sliderConfig = $configMethod->invoke($sliderBlock);
+                $data['sliderConfig'] = $configMethod->invoke($sliderBlock);
 
-                $data['sliderConfig'] = $sliderConfig;
                 return $data;
             }
         }

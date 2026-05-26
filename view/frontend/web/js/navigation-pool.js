@@ -1,7 +1,8 @@
 define([
     'jquery',
-    'ko'
-], function ($, ko) {
+    'ko',
+    'underscore'
+], function ($, ko, _) {
     'use strict';
 
     const NavigationPool = function () {
@@ -39,7 +40,26 @@ define([
             data: { isAjax: 1 },
             success: (response) => {
                 if (response.success) {
-                    if (response.filters) {
+                    if (response.filters && Array.isArray(response.filters)) {
+                        const previousFilters = this.filtersData() || [];
+
+                        // Identify filters that exist on UI but are missing in the new server response
+                        previousFilters.forEach((oldFilter) => {
+                            const isStillPresent = _.some(response.filters, (newFilter) => {
+                                return newFilter.code === oldFilter.code;
+                            });
+
+                            // If the attribute is completely excluded by the engine, clear its items to hide it
+                            if (!isStillPresent) {
+                                response.filters.push({
+                                    code: oldFilter.code,
+                                    name: oldFilter.name,
+                                    items: [],
+                                    maxSize: 0
+                                });
+                            }
+                        });
+
                         this.filtersData(response.filters);
                     }
 

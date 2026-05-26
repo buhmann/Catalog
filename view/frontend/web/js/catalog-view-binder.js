@@ -32,6 +32,9 @@ define([
         initialize: function () {
             this._super();
             this.initPoolSubscribers();
+
+            navigationPool.navigate(window.location.href);
+
             return this;
         },
 
@@ -62,7 +65,7 @@ define([
                     return;
                 }
 
-                // Default 'replace' mode: Execute granular DOM updates for full collection reload
+                // Default replacing logic for full page updates
                 self.updateProductsGrid(responseHtml);
                 self.updatePagination();
                 self.updateDisplayElements(responseHtml);
@@ -75,7 +78,7 @@ define([
         },
 
         /**
-         * Appends new products to the wrapper and synchronizes next page controls
+         * Appends product nodes to collection grid list container
          * @param {jQuery} responseHtml
          * @param {String} rawHtml
          */
@@ -104,7 +107,7 @@ define([
         },
 
         /**
-         * Prepends backward history products directly to the top of the container wrapper
+         * Prepends backward collection records history to target view area
          * @param {jQuery} responseHtml
          * @param {String} rawHtml
          * @param {URLSearchParams} urlParams
@@ -128,7 +131,7 @@ define([
         },
 
         /**
-         * Replaces the main catalog product collection container grid
+         * Clears standard catalog matrix block and replaces with updated nodes
          * @param {jQuery} responseHtml
          */
         updateProductsGrid: function (responseHtml) {
@@ -148,7 +151,7 @@ define([
         },
 
         /**
-         * Inserts or updates the catalog pagination block with precise positioning
+         * Synch and position current pagination markers inside layout toolbar
          */
         updatePagination: function () {
             if (!navigationPool.paginationHtml()) {
@@ -169,7 +172,6 @@ define([
             if ($currentPagination.length) {
                 $currentPagination.replaceWith($newPagination).show();
             } else {
-                // If elements were missing on page load, map exact DOM spots within the toolbar
                 const $targetLimiter = $(this.selectors.toolbar).last().find(this.selectors.limiter);
                 const $targetAmount = $(this.selectors.toolbar).last().find(this.selectors.toolbarAmount);
 
@@ -185,7 +187,7 @@ define([
         },
 
         /**
-         * Updates visual presentation controls like grid/list modes and sort directions
+         * Rebuild display profile options configuration links
          * @param {jQuery} responseHtml
          */
         updateDisplayElements: function (responseHtml) {
@@ -201,7 +203,7 @@ define([
         },
 
         /**
-         * Syncs item counters and dynamic limiter selections inside the toolbar wrapper
+         * Refresh total amount texts and item counting variables
          * @param {jQuery} responseHtml
          */
         updateToolbarTotals: function (responseHtml) {
@@ -223,7 +225,7 @@ define([
         },
 
         /**
-         * Re-evaluates and binds Magento's native productListToolbarForm widget lifecycle instance
+         * Bind toolbar controls form widget hooks
          * @param {String} requestUrl
          * @param {URLSearchParams} urlParams
          */
@@ -271,7 +273,7 @@ define([
         },
 
         /**
-         * Force-reinitializes SwatchRenderer data states to prevent binding cache lockups
+         * Reload swatch components to flush locked cached events data
          */
         reinitSwatches: function () {
             const $swatches = $(this.selectors.swatchOptions);
