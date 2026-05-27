@@ -1,0 +1,31 @@
+<?php
+/**
+ * @var $block \Magento\Swatches\Block\LayeredNavigation\RenderLayered
+ * @var $escaper \Magento\Framework\Escaper
+ */
+?>
+<?php $swatchData = $block->getSwatchData(); ?>
+<?php $attributeCode = $escaper->escapeHtmlAttr($swatchData['attribute_code']); ?>
+<?php $attributeId = $escaper->escapeHtmlAttr($swatchData['attribute_id']); ?>
+
+<div class="swatch-attribute swatch-layered <?= $attributeCode ?>"
+     data-attribute-id="<?= $attributeId ?>"
+     data-bind="scope: 'swatch_filter_<?= $attributeCode ?>'">
+    <!-- ko template: getTemplate() --> <!-- /ko -->
+</div>
+
+<script type="text/x-magento-init">
+    {
+        "*": {
+            "Magento_Ui/js/core/app": {
+                "components": {
+                    "swatch_filter_<?= $escaper->escapeJs($swatchData['attribute_code']) ?>": {
+                        "component": "Buhmann_Catalog/js/filter/swatch",
+                        "template": "Buhmann_Catalog/layer/filter/swatch",
+                        "attributeCode": "<?= $escaper->escapeJs($swatchData['attribute_code']) ?>"
+                    }
+                }
+            }
+        }
+    }
+</script>

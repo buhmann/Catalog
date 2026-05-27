@@ -1,0 +1,55 @@
+<div class="swatch-attribute-options clearfix" data-bind="foreach: items">
+    <a class="swatch-option-link-layered"
+       rel="nofollow"
+       data-bind="attr: { href: url, 'aria-label': label }, click: $parent.handleSwatchClick.bind($parent)">
+
+        <!-- ko if: swatch_type === 1 -->
+        <div class="swatch-option color"
+             tabindex="-1"
+             data-bind="style: { background: swatch_value },
+                        attr: {
+                            'data-option-type': swatch_type,
+                            'data-option-id': value,
+                            'data-option-label': label,
+                            'data-option-tooltip-thumb': '',
+                            'data-option-tooltip-value': swatch_value
+                        },
+                        css: { 'selected': is_selected, 'disabled': count === 0 },
+                        swatchTooltip: true">
+        </div>
+        <!-- /ko -->
+
+        <!-- ko if: swatch_type === 2 -->
+        <div class="swatch-option image"
+             tabindex="-1"
+             data-bind="style: { background: 'url(' + swatch_value + ') no-repeat center', backgroundSize: 'initial' },
+                        attr: {
+                            'data-option-type': swatch_type,
+                            'data-option-id': value,
+                            'data-option-label': label,
+                            'data-option-tooltip-thumb': swatch_value,
+                            'data-option-tooltip-value': ''
+                        },
+                        css: { 'selected': is_selected, 'disabled': count === 0 },
+                        swatchTooltip: true">
+        </div>
+        <!-- /ko -->
+
+        <!-- ko if: swatch_type === 0 -->
+        <div class="swatch-option text"
+             tabindex="-1"
+             data-bind="text: swatch_value ? swatch_value : label,
+                        attr: {
+                            'data-option-type': swatch_type,
+                            'data-option-id': value,
+                            'data-option-label': label,
+                            'data-option-tooltip-thumb': '',
+                            'data-option-tooltip-value': ''
+                        },
+                        css: { 'selected': is_selected, 'disabled': count === 0 },
+                        swatchTooltip: true">
+        </div>
+        <!-- /ko -->
+
+    </a>
+</div>

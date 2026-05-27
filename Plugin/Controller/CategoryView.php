@@ -5,10 +5,12 @@ namespace Buhmann\Catalog\Plugin\Controller;
 use Buhmann\Catalog\ViewModel\LayeredNavigation;
 use Magento\Catalog\Controller\Category\View as CategoryViewController;
 use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\View\LayoutInterface;
 use Magento\Framework\View\Result\Page;
 use Magento\Framework\App\RequestInterface;
 use Smile\ElasticsuiteCatalog\Block\Navigation as ElasticNavigationBlock;
 use Magento\Swatches\Helper\Data as SwatchHelper;
+use Magento\Swatches\Helper\Media as SwatchMediaHelper;
 use Magento\Catalog\Model\Layer\Filter\FilterInterface;
 use Smile\ElasticsuiteCatalog\Block\Navigation\Renderer\PriceSlider;
 use Smile\ElasticsuiteCatalog\Block\Navigation\Renderer\Slider;
@@ -34,6 +36,11 @@ class CategoryView
     private SwatchHelper $swatchHelper;
 
     /**
+     * @var SwatchMediaHelper
+     */
+    private SwatchMediaHelper $swatchMediaHelper;
+
+    /**
      * @var LayeredNavigation
      */
     private LayeredNavigation $layeredNavigationViewModel;
@@ -54,12 +61,14 @@ class CategoryView
         JsonFactory $jsonFactory,
         RequestInterface $request,
         SwatchHelper $swatchHelper,
+        SwatchMediaHelper $swatchMediaHelper,
         LayeredNavigation $layeredNavigationViewModel,
         ProductCollectionFactory $productCollectionFactory
     ) {
         $this->jsonFactory = $jsonFactory;
         $this->request = $request;
         $this->swatchHelper = $swatchHelper;
+        $this->swatchMediaHelper = $swatchMediaHelper;
         $this->layeredNavigationViewModel = $layeredNavigationViewModel;
         $this->productCollectionFactory = $productCollectionFactory;
     }
@@ -154,8 +163,12 @@ class CategoryView
 
     /**
      * Parse single filter model data depending on its type (Text, Swatch, Slider)
+     *
+     * @param FilterInterface $filter
+     * @param LayoutInterface $layout
+     * @return array
      */
-    private function extractFilterMetadata(FilterInterface $filter, $layout): array
+    private function extractFilterMetadata(FilterInterface $filter, LayoutInterface $layout): array
     {
         $attributeModel = $filter->hasAttributeModel() ? $filter->getAttributeModel() : null;
         $requestVar = $filter->getRequestVar();
@@ -190,33 +203,75 @@ class CategoryView
 
         $isSwatch = false;
         $swatchDataArray = [];
+        $textToIdMap = [];
+
         if ($attributeModel && $this->swatchHelper->isSwatchAttribute($attributeModel)) {
             $isSwatch = true;
             $data['type'] = 'swatch';
 
-            $optionIds = [];
-            foreach ($filter->getItems() as $item) {
-                $optionIds[] = $item->getValueString();
+            // Map lowercase option labels to their numeric option IDs
+            foreach ($attributeModel->getOptions() as $option) {
+                $label = $option->getLabel();
+                $id = $option->getValue();
+                if ($label !== null && $id !== null) {
+                    $textToIdMap[strtolower(trim($label))] = (int)$id;
+                }
             }
-            $swatchDataArray = $this->swatchHelper->getSwatchesByOptionsId($optionIds);
+
+            // Collect only valid numeric option IDs present in the current filter items
+            $numericOptionIds = [];
+            foreach ($filter->getItems() as $item) {
+                $itemValueKey = strtolower(trim($item->getValueString()));
+                if (isset($textToIdMap[$itemValueKey])) {
+                    $numericOptionIds[] = $textToIdMap[$itemValueKey];
+                }
+            }
+
+            if (!empty($numericOptionIds)) {
+                $swatchDataArray = $this->swatchHelper->getSwatchesByOptionsId($numericOptionIds);
+            }
         }
 
+        // 3. Build final items collection with structural optimization
         foreach ($filter->getItems() as $item) {
-            $optionId = $item->getValueString();
+            $optionValueString = $item->getValueString();
+            $itemValueKey = strtolower(trim($optionValueString));
 
             $itemData = [
                 'label'       => (string)$item->getLabel(),
                 'count'       => (int)$item->getCount(),
                 'url'         => (string)$item->getUrl(),
                 'is_selected' => (bool)$item->getIsSelected(),
-                'value'       => $optionId,
+                'value'       => $optionValueString,
                 'swatch_value'=> null,
                 'swatch_type' => null
             ];
 
-            if ($isSwatch && isset($swatchDataArray[$optionId])) {
-                $itemData['swatch_value'] = $swatchDataArray[$optionId]['value'];
-                $itemData['swatch_type']  = $swatchDataArray[$optionId]['type'];
+            // Guard clause: skip processing if it's not a swatch or option mapping doesn't exist
+            if (!$isSwatch || !isset($textToIdMap[$itemValueKey])) {
+                $data['items'][] = $itemData;
+                continue;
+            }
+
+            $numericId = $textToIdMap[$itemValueKey];
+            $swatchItem = $swatchDataArray[$numericId] ?? null;
+
+            if (is_array($swatchItem)) {
+                // Securely extract and sanitize raw string inputs with early fallback values
+                $rawType = isset($swatchItem['type']) ? str_replace(['"', "'"], '', $swatchItem['type']) : '0';
+                $rawValue = isset($swatchItem['value']) ? str_replace(['"', "'"], '', $swatchItem['value']) : '';
+
+                $cleanType = trim($rawType);
+                $cleanValue = trim($rawValue);
+
+                $itemData['swatch_type'] = (int)$cleanType;
+
+                // Resolve values based on strict type match (Type 2 is an image swatch)
+                if ($itemData['swatch_type'] === 2 && $cleanValue !== '') {
+                    $itemData['swatch_value'] = $this->swatchMediaHelper->getSwatchAttributeImage($cleanType, $cleanValue);
+                } else {
+                    $itemData['swatch_value'] = $cleanValue !== '' ? $cleanValue : null;
+                }
             }
 
             $data['items'][] = $itemData;
