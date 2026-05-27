@@ -1,0 +1,23 @@
+<div class="smile-es-range-slider" data-bind="visible: hasItems(), attr: {'data-role': getDataRole()}">
+    <div data-role="from-label" data-bind="text: displayFrom"></div>
+    <div data-role="to-label" data-bind="text: displayTo"></div>
+
+    <div data-role="slider-bar" data-bind="sliderRange: {
+        min: minValue,
+        max: maxValue,
+        values: [currentFrom(), currentTo()],
+        step: stepValue,
+        stop: handleSliderStop.bind($data),
+        slide: handleSliderSlide.bind($data)
+    }"></div>
+
+    <div class="actions-toolbar">
+        <div data-role="message-box" data-bind="html: messageBoxHtml"></div>
+
+        <div class="actions-primary" data-bind="visible: !isInstantAjax()">
+            <a class="action primary small" data-role="apply-range" href="#" data-bind="click: handleApplyClick">
+                <span data-bind="i18n: 'OK'"></span>
+            </a>
+        </div>
+    </div>
+</div>

@@ -39,9 +39,7 @@ define([
         },
 
         initPoolSubscribers: function () {
-            const self = this;
-
-            navigationPool.productsHtml.subscribe(function (data) {
+            navigationPool.productsHtml.subscribe(data => {
                 if (!data || !data.html) {
                     return;
                 }
@@ -56,22 +54,22 @@ define([
                 const options = data.options || { mode: 'replace' };
 
                 if (options.mode === 'append') {
-                    self.appendProducts(responseHtml, data.html);
+                    this.appendProducts(responseHtml, data.html);
                     return;
                 }
 
                 if (options.mode === 'prepend') {
-                    self.prependProducts(responseHtml, data.html, urlParams);
+                    this.prependProducts(responseHtml, data.html, urlParams);
                     return;
                 }
 
                 // Default replacing logic for full page updates
-                self.updateProductsGrid(responseHtml);
-                self.updatePagination();
-                self.updateDisplayElements(responseHtml);
-                self.updateToolbarTotals(responseHtml);
-                self.reinitToolbarWidget(requestUrl, urlParams);
-                self.reinitSwatches();
+                this.updateProductsGrid(responseHtml);
+                this.updatePagination();
+                this.updateDisplayElements(responseHtml);
+                this.updateToolbarTotals(responseHtml);
+                this.reinitToolbarWidget(requestUrl, urlParams);
+                this.reinitSwatches();
 
                 document.body.dispatchEvent(new CustomEvent('contentUpdated'));
             });
@@ -290,6 +288,6 @@ define([
                     $swatch.trigger('contentUpdated');
                 }
             });
-        }
+        },
     });
 });

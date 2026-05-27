@@ -18,4 +18,10 @@
     <type name="Smile\ElasticsuiteCore\Search\Request\ContainerConfiguration">
         <plugin name="buhmann_catalog_force_container_bucket_size" type="Buhmann\Catalog\Plugin\Search\Request\ContainerConfiguration" />
     </type>
+    <type name="Smile\ElasticsuiteCatalog\Block\Navigation\Renderer\Slider">
+        <plugin name="buhmann_catalog_slider_ajax_template_plugin" type="Buhmann\Catalog\Plugin\Block\Navigation\Renderer\Slider" />
+    </type>
+    <type name="Smile\ElasticsuiteCatalog\Block\Navigation\Renderer\PriceSlider">
+        <plugin name="buhmann_catalog_priceslider_ajax_template_plugin" type="Buhmann\Catalog\Plugin\Block\Navigation\Renderer\PriceSlider" />
+    </type>
 </config>

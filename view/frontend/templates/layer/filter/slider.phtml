@@ -1,0 +1,29 @@
+<?php
+/**
+ * @var $block \Smile\ElasticsuiteCatalog\Block\Navigation\Renderer\Slider
+ * @var $escaper \Magento\Framework\Escaper
+ */
+
+$filterCode = $block->getFilter()->getRequestVar();
+$datascope = $filterCode . 'Filter';
+?>
+<div data-bind="scope: '<?= $escaper->escapeHtmlAttr($datascope); ?>'">
+    <!-- ko template: getTemplate() --> <!-- /ko -->
+</div>
+
+<script type="text/x-magento-init">
+    {
+        "*" : {
+            "Magento_Ui/js/core/app": {
+                "components": {
+                    "<?= $escaper->escapeJs($datascope); ?>": {
+                        "component": "Buhmann_Catalog/js/filter/slider",
+                        "template": "Buhmann_Catalog/layer/filter/slider",
+                        "filterCode": "<?= $escaper->escapeJs($filterCode); ?>",
+                        "isInstantAjax": true
+                    }
+                }
+            }
+        }
+    }
+</script>
