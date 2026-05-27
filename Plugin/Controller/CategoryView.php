@@ -14,6 +14,7 @@ use Smile\ElasticsuiteCatalog\Block\Navigation\Renderer\PriceSlider;
 use Smile\ElasticsuiteCatalog\Block\Navigation\Renderer\Slider;
 use Smile\ElasticsuiteCatalog\Model\Layer\Filter\Decimal;
 use Smile\ElasticsuiteCatalog\Model\Layer\Filter\Price;
+use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductCollectionFactory;
 
 class CategoryView
 {
@@ -38,21 +39,29 @@ class CategoryView
     private LayeredNavigation $layeredNavigationViewModel;
 
     /**
+     * @var ProductCollectionFactory
+     */
+    private ProductCollectionFactory $productCollectionFactory;
+
+    /**
      * @param JsonFactory $jsonFactory
      * @param RequestInterface $request
      * @param SwatchHelper $swatchHelper
      * @param LayeredNavigation $layeredNavigationViewModel
+     * @param ProductCollectionFactory $productCollectionFactory
      */
     public function __construct(
         JsonFactory $jsonFactory,
         RequestInterface $request,
         SwatchHelper $swatchHelper,
-        LayeredNavigation $layeredNavigationViewModel
+        LayeredNavigation $layeredNavigationViewModel,
+        ProductCollectionFactory $productCollectionFactory
     ) {
         $this->jsonFactory = $jsonFactory;
         $this->request = $request;
         $this->swatchHelper = $swatchHelper;
         $this->layeredNavigationViewModel = $layeredNavigationViewModel;
+        $this->productCollectionFactory = $productCollectionFactory;
     }
 
     /**
@@ -87,14 +96,25 @@ class CategoryView
 
         $layout = $pageResult->getLayout();
 
-        // 1. Collect standard HTML payloads from native blocks
         $productsBlock = $layout->getBlock('category.products.list');
-        $productsHtml = $productsBlock ? $productsBlock->toHtml() : '';
-
         $toolbarBlock = $layout->getBlock('product_list_toolbar');
-        $toolbarHtml = $toolbarBlock ? $toolbarBlock->toHtml() : '';
-
         $paginationBlock = $layout->getBlock('product_list_toolbar_pager');
+
+        $emptyProductCollection = null;
+        if ($toolbarBlock && (!$toolbarBlock->getCollection() || $toolbarBlock->getCollection() === null)) {
+            $emptyProductCollection = $this->productCollectionFactory->create();
+            $toolbarBlock->setCollection($emptyProductCollection);
+        }
+        if ($paginationBlock && (!$paginationBlock->getCollection() || $paginationBlock->getCollection() === null)) {
+            if (!$emptyProductCollection) {
+                $emptyProductCollection = $this->productCollectionFactory->create();
+            }
+            $paginationBlock->setCollection($emptyProductCollection);
+        }
+
+        // 1. Collect standard HTML payloads from native blocks
+        $productsHtml = $productsBlock ? $productsBlock->toHtml() : '';
+        $toolbarHtml = $toolbarBlock ? $toolbarBlock->toHtml() : '';
         $paginationHtml = $paginationBlock ? $paginationBlock->toHtml() : '';
 
         // HARD FIX: Clean up any traces of internal isAjax parameters inside the generated HTML chunks
@@ -150,13 +170,9 @@ class CategoryView
             'items'       => []
         ];
 
-        if ($filter instanceof Decimal ||
-            $filter instanceof Price) {
-
+        if ($filter instanceof Decimal || $filter instanceof Price) {
             $data['type'] = 'slider';
-            $blockClass = ($filter instanceof Price)
-                ? PriceSlider::class
-                : Slider::class;
+            $blockClass = ($filter instanceof Price) ? PriceSlider::class : Slider::class;
 
             /** @var Slider $sliderBlock */
             $sliderBlock = $layout->createBlock($blockClass);

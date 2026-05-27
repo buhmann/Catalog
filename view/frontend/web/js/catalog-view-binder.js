@@ -69,6 +69,7 @@ define([
                 this.updateDisplayElements(responseHtml);
                 this.updateToolbarTotals(responseHtml);
                 this.reinitToolbarWidget(requestUrl, urlParams);
+                this.toggleToolbarVisibility(responseHtml);
                 this.reinitSwatches();
 
                 document.body.dispatchEvent(new CustomEvent('contentUpdated'));
@@ -136,8 +137,12 @@ define([
             const $newGridContainer = responseHtml.find(this.selectors.productGrid);
             const $targetGrid = $(this.selectors.productGrid);
 
-            if ($newGridContainer.length) {
-                $targetGrid.replaceWith($newGridContainer);
+            if ($targetGrid.length) {
+                if ($newGridContainer.length) {
+                    $targetGrid.replaceWith($newGridContainer);
+                } else {
+                    $targetGrid.html(responseHtml.html());
+                }
             } else {
                 const $newProducts = responseHtml.find(this.selectors.productWrapper);
                 if ($newProducts.length) {
@@ -268,6 +273,28 @@ define([
                     $finalLimiterSelect.val(urlParams.get(self.options.limitParam));
                 }
             });
+        },
+
+        /**
+         * Toggles visibility of toolbar structures based on navigation data and grid availability
+         *
+         * @param {jQuery} responseHtml
+         */
+        toggleToolbarVisibility: function (responseHtml) {
+            const filters = navigationPool.filtersData() || [];
+            const $newGridContainer = responseHtml.find(this.selectors.productGrid);
+            const $toolbars = $(this.selectors.toolbar);
+
+            // Check if every filter group in the pool contains zero selectable items
+            const hasNoFilterItems = _.every(filters, function (filter) {
+                return !filter.items || filter.items.length === 0;
+            });
+
+            if (hasNoFilterItems && !$newGridContainer.length) {
+                $toolbars.hide();
+            } else {
+                $toolbars.show();
+            }
         },
 
         /**
