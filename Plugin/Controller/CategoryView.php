@@ -5,9 +5,11 @@ namespace Buhmann\Catalog\Plugin\Controller;
 use Buhmann\Catalog\ViewModel\LayeredNavigation;
 use Magento\Catalog\Controller\Category\View as CategoryViewController;
 use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\View\LayoutInterface;
 use Magento\Framework\View\Result\Page;
 use Magento\Framework\App\RequestInterface;
+use ReflectionMethod;
 use Smile\ElasticsuiteCatalog\Block\Navigation as ElasticNavigationBlock;
 use Magento\Swatches\Helper\Data as SwatchHelper;
 use Magento\Swatches\Helper\Media as SwatchMediaHelper;
@@ -167,6 +169,7 @@ class CategoryView
      * @param FilterInterface $filter
      * @param LayoutInterface $layout
      * @return array
+     * @throws \ReflectionException|LocalizedException
      */
     private function extractFilterMetadata(FilterInterface $filter, LayoutInterface $layout): array
     {
@@ -174,13 +177,14 @@ class CategoryView
         $requestVar = $filter->getRequestVar();
 
         $data = [
-            'code'        => $requestVar,
-            'label'       => __($filter->getName())->render(),
-            'type'        => 'text',
-            'sliderConfig'=> null,
-            'maxSize'     => $this->layeredNavigationViewModel->getMaxFilterItems(),
-            'hasMoreItems'=> count($filter->getItems()) > $this->layeredNavigationViewModel->getMaxFilterItems(),
-            'items'       => []
+            'code'                => $requestVar,
+            'label'               => __($filter->getName())->render(),
+            'type'                => 'text',
+            'sliderConfig'        => null,
+            'maxSize'             => $this->layeredNavigationViewModel->getMaxFilterItems(),
+            'hasMoreItems'        => count($filter->getItems()) > $this->layeredNavigationViewModel->getMaxFilterItems(),
+            'displayProductCount' => (int)$this->layeredNavigationViewModel->displayProductCount(),
+            'items'               => []
         ];
 
         if ($filter instanceof Decimal || $filter instanceof Price) {
@@ -193,7 +197,7 @@ class CategoryView
             if ($sliderBlock) {
                 $sliderBlock->render($filter);
 
-                $configMethod = new \ReflectionMethod(get_class($sliderBlock), 'getConfig');
+                $configMethod = new ReflectionMethod(get_class($sliderBlock), 'getConfig');
                 $configMethod->setAccessible(true);
                 $data['sliderConfig'] = $configMethod->invoke($sliderBlock);
 

@@ -78,4 +78,17 @@ class LayeredNavigation implements ArgumentInterface
 
         return $maxSize ? (int)$maxSize : 10;
     }
+
+    /**
+     * Check if product count should be displayed next to filter options
+     *
+     * @return bool
+     */
+    public function displayProductCount(): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            'catalog/layered_navigation/display_product_count',
+            ScopeInterface::SCOPE_STORE
+        );
+    }
 }

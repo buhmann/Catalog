@@ -22,7 +22,8 @@ define([
     return Component.extend({
         defaults: {
             attributeCode: '',
-            items: []
+            items: [],
+            template: 'Buhmann_Catalog/layer/filter/swatch',
         },
 
         /**
