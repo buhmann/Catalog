@@ -21,6 +21,7 @@ define([
             this._super();
 
             this.items = ko.observableArray([]);
+            this.visible = ko.observable(true);
             this.updateItemsFromPool(navigationPool.filtersData());
 
             navigationPool.filtersData.subscribe((allFilters) => {

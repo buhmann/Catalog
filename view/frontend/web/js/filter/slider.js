@@ -106,6 +106,15 @@ define([
         },
 
         /**
+         * Initialize component and register active observable hooks
+         */
+        initialize: function () {
+            this._super();
+
+            this.visible = ko.observable(true);
+        },
+
+        /**
          * Component initialization
          */
         initObservable() {

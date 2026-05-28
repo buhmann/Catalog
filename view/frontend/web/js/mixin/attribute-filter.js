@@ -14,6 +14,7 @@ define([
             initialize: function () {
                 // Create a dedicated knockout observable to act as a rendering dependency trigger
                 this.filterRefreshTrigger = ko.observable(0);
+                this.visible = ko.observable(true);
 
                 this._super();
 
