@@ -1,0 +1,168 @@
+<!-- ko if: isLoading -->
+<div class="ajax-navigation-overlay-loader" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255,255,255,0.6); z-index: 99999; display: flex; align-items: center; justify-content: center; pointer-events: all;">
+    <div class="spinner"></div>
+</div>
+<!-- /ko -->
+
+<!-- ko if: hasActiveFilters() && activeFiltersData().length > 0 -->
+<div class="filter-current" data-collapsible="true" role="tablist">
+    <strong class="block-subtitle filter-current-subtitle"
+            role="tab"
+            aria-level="2"
+            data-role="title"
+            data-bind="attr: {'data-count': activeFiltersData().length}"
+            aria-selected="false"
+            aria-expanded="false"
+            tabindex="0">
+        <!-- ko i18n: 'Now Shopping by' --><!-- /ko -->
+    </strong>
+    <ol class="items">
+        <!-- ko foreach: activeFiltersData -->
+        <li class="item">
+            <span class="filter-label" data-bind="html: filterLabel"></span>
+            <span class="filter-value" data-bind="html: valueLabel"></span>
+            <a class="action remove"
+               data-bind="attr: {
+                   href: clearUrl,
+                   title: $t('Remove') + ' ' + filterLabel + ' ' + valueLabel
+               }, click: (data, event) => $parent.removeActiveFilter(clearUrl, event)">
+                <span><!-- ko i18n: 'Remove This Item' --><!-- /ko --></span>
+            </a>
+        </li>
+        <!-- /ko -->
+    </ol>
+</div>
+<!-- /ko -->
+
+<!-- ko if: hasActiveFilters() -->
+<div class="block-actions filter-actions">
+    <a class="action clear filter-clear"
+       data-bind="attr: { href: window.location.pathname }, click: clearAll">
+        <span><!-- ko i18n: 'Clear All' --><!-- /ko --></span>
+    </a>
+</div>
+<!-- /ko -->
+
+<div class="filter-options"
+     id="narrow-by-list"
+     data-role="content"
+     data-bind="dynamicAccordion: filtersData, accordionConfig: accordionConfig"
+>
+    <!-- ko foreach: filtersData -->
+
+        <!-- ko if: $data.type === 'swatch' -->
+        <div class="filter-options-item"
+             data-role="collapsible"
+             data-bind="attr: {'data-filter-code': $data.code},
+                css: {
+                    'is-closed': $data.isCollapsed === true,
+                    'is-opened': $data.isCollapsed === false
+                },
+                mageInit: {
+                    'Magento_Ui/js/core/app': {
+                        'components': {
+                            [$data.code + 'Filter']: {
+                                'component': 'Buhmann_Catalog/js/filter/swatch',
+                                'attributeCode': $data.code
+                            }
+                        }
+                    }
+                }, visible: require('uiRegistry').get($data.code + 'Filter') ? require('uiRegistry').get($data.code + 'Filter').visible : true">
+            <div class="filter-options-title" data-role="title" data-bind="text: $data.label, clickBubble: false"></div>
+            <div class="filter-options-content" data-role="content">
+                <div data-bind="scope: $data.code + 'Filter'">
+                    <!-- ko template: getTemplate() --><!-- /ko -->
+                </div>
+            </div>
+        </div>
+        <!-- /ko -->
+
+        <!-- ko if: $data.type === 'slider' -->
+        <div class="filter-options-item"
+             data-role="collapsible"
+             data-bind="attr: {'data-filter-code': $data.code},
+                css: {
+                    'is-closed': $data.isCollapsed === true,
+                    'is-opened': $data.isCollapsed === false
+                },
+                mageInit: {
+                    'Magento_Ui/js/core/app': {
+                        'components': {
+                            [$data.code + 'Filter']: {
+                                'component': 'Buhmann_Catalog/js/filter/slider',
+                                'filterCode': $data.code,
+                                'sliderConfig': $data.sliderConfig
+                            }
+                        }
+                    }
+                }, visible: require('uiRegistry').get($data.code + 'Filter') ? require('uiRegistry').get($data.code + 'Filter').visible : true">
+            <div class="filter-options-title" data-role="title" data-bind="text: $data.label, clickBubble: false"></div>
+            <div class="filter-options-content" data-role="content">
+                <div data-bind="scope: $data.code + 'Filter'">
+                    <!-- ko template: getTemplate() --><!-- /ko -->
+                </div>
+            </div>
+        </div>
+        <!-- /ko -->
+
+        <!-- ko if: $data.code === 'cat' -->
+        <div class="filter-options-item"
+             data-role="collapsible"
+             data-bind="attr: {'data-filter-code': $data.code},
+                css: {
+                    'is-closed': $data.isCollapsed === true,
+                    'is-opened': $data.isCollapsed === false
+                },
+                mageInit: {
+                    'Magento_Ui/js/core/app': {
+                        'components': {
+                            'catFilter': {
+                                'component': 'Buhmann_Catalog/js/filter/category',
+                                'filterCode': 'cat'
+                            }
+                        }
+                    }
+                }, visible: require('uiRegistry').get('catFilter') ? require('uiRegistry').get('catFilter').visible : true">
+            <div class="filter-options-title" data-role="title" data-bind="text: $data.label, clickBubble: false"></div>
+            <div class="filter-options-content" data-role="content">
+                <div data-bind="scope: 'catFilter'">
+                    <!-- ko template: getTemplate() --><!-- /ko -->
+                </div>
+            </div>
+        </div>
+        <!-- /ko -->
+
+        <!-- ko if: $data.type === 'text' && $data.code !== 'cat' -->
+        <div class="filter-options-item"
+             data-role="collapsible"
+             data-bind="attr: {'data-filter-code': $data.code},
+                css: {
+                    'is-closed': $data.isCollapsed === true,
+                    'is-opened': $data.isCollapsed === false
+                },
+                mageInit: {
+                    'Magento_Ui/js/core/app': {
+                        'components': {
+                            [$data.code + 'Filter']: {
+                                'component': 'Buhmann_Catalog/js/filter/attribute',
+                                'index': $data.code,
+                                'filterCode': $data.code,
+                                'items': $data.items,
+                                'maxSize': $data.maxSize,
+                                'hasMoreItems': $data.hasMoreItems,
+                                'displayProductCount': $data.displayProductCount
+                            }
+                        }
+                    }
+                }, visible: require('uiRegistry').get($data.code + 'Filter') ? require('uiRegistry').get($data.code + 'Filter').visible : true">
+            <div class="filter-options-title" data-role="title" data-bind="text: $data.label, clickBubble: false"></div>
+            <div class="filter-options-content" data-role="content">
+                <div data-bind="scope: $data.code + 'Filter'">
+                    <!-- ko template: getTemplate() --><!-- /ko -->
+                </div>
+            </div>
+        </div>
+        <!-- /ko -->
+
+    <!-- /ko -->
+</div>

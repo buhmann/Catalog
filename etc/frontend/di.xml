@@ -12,6 +12,9 @@
     <type name="Magento\Catalog\Controller\Category\View">
         <plugin name="buhmann_catalog_ajax_category_view_json" type="Buhmann\Catalog\Plugin\Controller\CategoryView" />
     </type>
+    <type name="Smile\ElasticsuiteCatalog\Block\Navigation">
+        <plugin name="buhmann_catalog_dynamic_template_switcher" type="Buhmann\Catalog\Plugin\Block\Navigation" sortOrder="10"/>
+    </type>
     <type name="Smile\ElasticsuiteCatalog\Block\Navigation\Renderer\Category">
         <plugin name="buhmann_catalog_category_ajax_renderer" type="Buhmann\Catalog\Plugin\Block\Navigation\Renderer\Category" />
     </type>
