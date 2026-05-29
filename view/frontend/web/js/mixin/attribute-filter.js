@@ -122,8 +122,15 @@ define([
 
             /**
              * Callback for the "Show more" button
+             * @param {Object} data - Element context scope
+             * @param {Event} event - UI interaction event payload
              */
-            onShowMore: function () {
+            onShowMore: function (data, event) {
+                if (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+
                 this.expanded(true);
                 if (this.filterRefreshTrigger) {
                     this.filterRefreshTrigger(this.filterRefreshTrigger() + 1);
@@ -132,8 +139,15 @@ define([
 
             /**
              * Callback for the "Show less" button
+             * @param {Object} data - Element context scope
+             * @param {Event} event - UI interaction event payload
              */
-            onShowLess: function () {
+            onShowLess: function (data, event) {
+                if (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+
                 this.expanded(false);
                 if (this.filterRefreshTrigger) {
                     this.filterRefreshTrigger(this.filterRefreshTrigger() + 1);
