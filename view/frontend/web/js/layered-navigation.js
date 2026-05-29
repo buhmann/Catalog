@@ -130,42 +130,7 @@ define([
             this.isLoading = navigationPool.isLoading;
             this.filtersData = navigationPool.filtersData;
 
-            this.activeFiltersData = ko.computed(() => {
-                const groups = this.filtersData() || [];
-                const activeItems = [];
-
-                groups.forEach(group => {
-                    if (group.items && Array.isArray(group.items)) {
-                        group.items.forEach(item => {
-                            if (item.is_selected === true) {
-                                activeItems.push({
-                                    filterLabel: group.label,
-                                    valueLabel: item.label,
-                                    clearUrl: item.url
-                                });
-                            }
-                        });
-                    }
-
-                    if (group.type === 'slider' && group.sliderConfig && group.sliderConfig.currentValue) {
-                        const val = group.sliderConfig.currentValue;
-                        const min = group.sliderConfig.minValue;
-                        const max = group.sliderConfig.maxValue;
-
-                        const isPriceActive = (val.from !== undefined && val.to !== undefined) &&
-                            (parseFloat(val.from) > parseFloat(min) || parseFloat(val.to) < parseFloat(max));
-
-                        if (isPriceActive) {
-                            activeItems.push({
-                                filterLabel: group.label,
-                                valueLabel: '$' + val.from + '.00 - $' + val.to + '.00',
-                                clearUrl: group.sliderConfig.urlTemplate ? group.sliderConfig.urlTemplate.split('?')[0] : '#'
-                            });
-                        }
-                    }
-                });
-                return activeItems;
-            });
+            this.activeFiltersData = ko.computed(() => this._getActiveFiltersList());
 
             return this;
         },
@@ -176,21 +141,7 @@ define([
          * @returns {Boolean}
          */
         hasActiveFilters: function () {
-            const groups = this.filtersData() || [];
-
-            return _.some(groups, function (group) {
-                const hasSelectedItems = group.items && _.some(group.items, function (item) {
-                    return item.is_selected === true;
-                });
-
-                const hasActiveSlider = group.type === 'slider' &&
-                    group.sliderConfig &&
-                    group.sliderConfig.currentValue &&
-                    (parseFloat(group.sliderConfig.currentValue.from) > parseFloat(group.sliderConfig.minValue) ||
-                        parseFloat(group.sliderConfig.currentValue.to) < parseFloat(group.sliderConfig.maxValue));
-
-                return hasSelectedItems || hasActiveSlider;
-            });
+            return this._getActiveFiltersList().length > 0;
         },
 
         /**
@@ -215,7 +166,7 @@ define([
         clearAll: function (data, event) {
             if (event) {
                 event.preventDefault();
-                if (event.originalEvent) {
+                if (event.hasOwnProperty('originalEvent')) {
                     event.originalEvent.preventDefault();
                     event.originalEvent.stopPropagation();
                 }
@@ -229,6 +180,50 @@ define([
             }
 
             return false;
-        }
+        },
+
+        /**
+         * Internal helper to identify active filters based on data structure
+         * * @returns {Array}
+         * @private
+         */
+        _getActiveFiltersList: function () {
+            const groups = this.filtersData() || [];
+            const activeItems = [];
+
+            groups.forEach(group => {
+                if (group.items && Array.isArray(group.items)) {
+                    group.items.forEach(item => {
+                        if (item.is_selected === true) {
+                            activeItems.push({
+                                filterLabel: group.label,
+                                valueLabel: item.label,
+                                clearUrl: item.url
+                            });
+                        }
+                    });
+                }
+
+                if (group.type === 'slider') {
+                    const sliderConfig = group.hasOwnProperty('sliderConfig') ? group.sliderConfig : {currentValue: false};
+                    if (group.type === 'slider' && sliderConfig.currentValue) {
+                        const val = sliderConfig.currentValue;
+                        const min = sliderConfig.minValue;
+                        const max = sliderConfig.maxValue;
+                        const currency = sliderConfig.currencySymbol || '$';
+
+                        if ((parseFloat(val.from) > parseFloat(min) || parseFloat(val.to) < parseFloat(max))) {
+                            activeItems.push({
+                                filterLabel: group.label,
+                                valueLabel: currency + val.from + '.00 - ' + currency + val.to + '.00',
+                                clearUrl: sliderConfig.urlTemplate ? sliderConfig.urlTemplate.split('?')[0] : '#'
+                            });
+                        }
+                    }
+                }
+            });
+
+            return activeItems;
+        },
     });
 });

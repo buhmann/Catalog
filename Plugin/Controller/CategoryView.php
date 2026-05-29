@@ -9,6 +9,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\View\LayoutInterface;
 use Magento\Framework\View\Result\Page;
 use Magento\Framework\App\RequestInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use ReflectionMethod;
 use Smile\ElasticsuiteCatalog\Block\Navigation as ElasticNavigationBlock;
 use Magento\Swatches\Helper\Data as SwatchHelper;
@@ -53,11 +54,18 @@ class CategoryView
     private ProductCollectionFactory $productCollectionFactory;
 
     /**
+     * @var StoreManagerInterface
+     */
+    private StoreManagerInterface $storeManager;
+
+    /**
      * @param JsonFactory $jsonFactory
      * @param RequestInterface $request
      * @param SwatchHelper $swatchHelper
+     * @param SwatchMediaHelper $swatchMediaHelper
      * @param LayeredNavigation $layeredNavigationViewModel
      * @param ProductCollectionFactory $productCollectionFactory
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         JsonFactory $jsonFactory,
@@ -65,7 +73,8 @@ class CategoryView
         SwatchHelper $swatchHelper,
         SwatchMediaHelper $swatchMediaHelper,
         LayeredNavigation $layeredNavigationViewModel,
-        ProductCollectionFactory $productCollectionFactory
+        ProductCollectionFactory $productCollectionFactory,
+        StoreManagerInterface $storeManager
     ) {
         $this->jsonFactory = $jsonFactory;
         $this->request = $request;
@@ -73,6 +82,7 @@ class CategoryView
         $this->swatchMediaHelper = $swatchMediaHelper;
         $this->layeredNavigationViewModel = $layeredNavigationViewModel;
         $this->productCollectionFactory = $productCollectionFactory;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -200,6 +210,10 @@ class CategoryView
                 $configMethod = new ReflectionMethod(get_class($sliderBlock), 'getConfig');
                 $configMethod->setAccessible(true);
                 $data['sliderConfig'] = $configMethod->invoke($sliderBlock);
+
+                if ($filter instanceof Price) {
+                    $data['sliderConfig']['currencySymbol'] = $this->storeManager->getStore()->getCurrentCurrency()->getCurrencySymbol();
+                }
 
                 return $data;
             }
