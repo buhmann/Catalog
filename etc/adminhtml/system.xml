@@ -25,8 +25,15 @@
                     </depends>
                 </field>
                 <field id="ajax_layered_nav" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
-                    <label>Enable AJAX Navigation and Sorting</label>
+                    <label>Enable AJAX Navigation and Toolbar</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="max_filter_items" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Visible options count by default</label>
+                    <validate>validate-digits validate-zero-or-greater validate-number-range number-range-5-9999</validate>
+                    <depends>
+                        <field id="ajax_layered_nav">1</field>
+                    </depends>
                 </field>
             </group>
         </section>
