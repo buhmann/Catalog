@@ -43,21 +43,21 @@
 </div>
 <!-- /ko -->
 
+<!-- ko if: filtersData().length > 0 -->
+<strong role="heading" aria-level="2" class="block-subtitle filter-subtitle" data-bind="i18n: 'Shopping Options'"></strong>
+<!-- /ko -->
+
 <div class="filter-options"
      id="narrow-by-list"
      data-role="content"
-     data-bind="dynamicAccordion: filtersData, accordionConfig: accordionConfig"
+     data-bind="dynamicAccordion: { data: filtersData, config: accordionConfig }"
 >
     <!-- ko foreach: filtersData -->
 
         <!-- ko if: $data.type === 'swatch' -->
         <div class="filter-options-item"
-             data-role="collapsible"
+             data-ajax-role="collapsible"
              data-bind="attr: {'data-filter-code': $data.code},
-                css: {
-                    'is-closed': $data.isCollapsed === true,
-                    'is-opened': $data.isCollapsed === false
-                },
                 mageInit: {
                     'Magento_Ui/js/core/app': {
                         'components': {
@@ -68,8 +68,8 @@
                         }
                     }
                 }, visible: require('uiRegistry').get($data.code + 'Filter') ? require('uiRegistry').get($data.code + 'Filter').visible : true">
-            <div class="filter-options-title" data-role="title" data-bind="text: $data.label, clickBubble: false"></div>
-            <div class="filter-options-content" data-role="content">
+            <div class="filter-options-title" data-ajax-role="title" data-bind="text: $data.label, clickBubble: false"></div>
+            <div class="filter-options-content" data-ajax-role="content">
                 <div data-bind="scope: $data.code + 'Filter'">
                     <!-- ko template: getTemplate() --><!-- /ko -->
                 </div>
@@ -79,12 +79,8 @@
 
         <!-- ko if: $data.type === 'slider' -->
         <div class="filter-options-item"
-             data-role="collapsible"
+             data-ajax-role="collapsible"
              data-bind="attr: {'data-filter-code': $data.code},
-                css: {
-                    'is-closed': $data.isCollapsed === true,
-                    'is-opened': $data.isCollapsed === false
-                },
                 mageInit: {
                     'Magento_Ui/js/core/app': {
                         'components': {
@@ -96,8 +92,8 @@
                         }
                     }
                 }, visible: require('uiRegistry').get($data.code + 'Filter') ? require('uiRegistry').get($data.code + 'Filter').visible : true">
-            <div class="filter-options-title" data-role="title" data-bind="text: $data.label, clickBubble: false"></div>
-            <div class="filter-options-content" data-role="content">
+            <div class="filter-options-title" data-ajax-role="title" data-bind="text: $data.label, clickBubble: false"></div>
+            <div class="filter-options-content" data-ajax-role="content">
                 <div data-bind="scope: $data.code + 'Filter'">
                     <!-- ko template: getTemplate() --><!-- /ko -->
                 </div>
@@ -107,24 +103,21 @@
 
         <!-- ko if: $data.code === 'cat' -->
         <div class="filter-options-item"
-             data-role="collapsible"
+             data-ajax-role="collapsible"
              data-bind="attr: {'data-filter-code': $data.code},
-                css: {
-                    'is-closed': $data.isCollapsed === true,
-                    'is-opened': $data.isCollapsed === false
-                },
                 mageInit: {
                     'Magento_Ui/js/core/app': {
                         'components': {
                             'catFilter': {
                                 'component': 'Buhmann_Catalog/js/filter/category',
+                                'isMultipleSelectEnabled': false,
                                 'filterCode': 'cat'
                             }
                         }
                     }
                 }, visible: require('uiRegistry').get('catFilter') ? require('uiRegistry').get('catFilter').visible : true">
-            <div class="filter-options-title" data-role="title" data-bind="text: $data.label, clickBubble: false"></div>
-            <div class="filter-options-content" data-role="content">
+            <div class="filter-options-title" data-ajax-role="title" data-bind="text: $data.label, clickBubble: false"></div>
+            <div class="filter-options-content" data-ajax-role="content">
                 <div data-bind="scope: 'catFilter'">
                     <!-- ko template: getTemplate() --><!-- /ko -->
                 </div>
@@ -134,12 +127,8 @@
 
         <!-- ko if: $data.type === 'text' && $data.code !== 'cat' -->
         <div class="filter-options-item"
-             data-role="collapsible"
+             data-ajax-role="collapsible"
              data-bind="attr: {'data-filter-code': $data.code},
-                css: {
-                    'is-closed': $data.isCollapsed === true,
-                    'is-opened': $data.isCollapsed === false
-                },
                 mageInit: {
                     'Magento_Ui/js/core/app': {
                         'components': {
@@ -155,8 +144,8 @@
                         }
                     }
                 }, visible: require('uiRegistry').get($data.code + 'Filter') ? require('uiRegistry').get($data.code + 'Filter').visible : true">
-            <div class="filter-options-title" data-role="title" data-bind="text: $data.label, clickBubble: false"></div>
-            <div class="filter-options-content" data-role="content">
+            <div class="filter-options-title" data-ajax-role="title" data-bind="text: $data.label, clickBubble: false"></div>
+            <div class="filter-options-content" data-ajax-role="content">
                 <div data-bind="scope: $data.code + 'Filter'">
                     <!-- ko template: getTemplate() --><!-- /ko -->
                 </div>

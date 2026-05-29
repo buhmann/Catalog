@@ -4,116 +4,9 @@ define([
     'ko',
     'underscore',
     'Buhmann_Catalog/js/navigation-pool',
-    'accordion',
+    'Buhmann_Catalog/js/lib/dynamic-accordion',
 ], function (Component, $, ko, _, navigationPool) {
     'use strict';
-
-    ko.bindingHandlers.dynamicAccordion = {
-        update: (element, valueAccessor, allBindings) => {
-            const filtersData = ko.utils.unwrapObservable(valueAccessor());
-            const config = allBindings.get('accordionConfig') || {};
-            const $element = $(element);
-            const openedStateClass = config.openedState || 'active';
-
-            const openedFilterCodes = [];
-            $element.find('[data-role="collapsible"]').each(function () {
-                const $item = $(this);
-                const filterCode = $item.attr('data-filter-code');
-                const isOpened = $item.hasClass('active') || $item.hasClass(openedStateClass);
-
-                if (filterCode && $item.is(':visible') && isOpened) {
-                    openedFilterCodes.push(filterCode);
-                }
-
-                const matchedData = filtersData.find(f => f.code === filterCode);
-                if (matchedData) {
-                    matchedData.isCollapsed = !isOpened;
-                }
-            });
-
-            setTimeout(() => {
-                $element.removeClass('mage-accordion-disabled');
-                $element.removeData('mageAccordion').removeData('mage-accordion');
-                $element.find('[data-role="collapsible"]').removeData('mageCollapsible').removeData('mage-collapsible');
-
-                const finalActiveConfig = [];
-                let visibleIndex = 0;
-
-                $element.find('[data-role="collapsible"]').each(function () {
-                    const $item = $(this);
-
-                    if ($item.is(':visible')) {
-                        const currentCode = $item.attr('data-filter-code');
-                        const $title = $item.find('[data-role="title"]');
-                        const $content = $item.find('[data-role="content"]');
-
-                        if (openedFilterCodes.length > 0) {
-                            if (openedFilterCodes.includes(currentCode)) {
-                                finalActiveConfig.push(visibleIndex);
-                                $item.addClass(openedStateClass).removeClass('is-closed');
-                                $title.addClass(openedStateClass).attr('aria-selected', 'true').attr('aria-expanded', 'true');
-                                $content.addClass(openedStateClass).show().attr('aria-hidden', 'false');
-                            } else {
-                                $item.removeClass(openedStateClass).addClass('is-closed');
-                                $title.removeClass(openedStateClass).attr('aria-selected', 'false').attr('aria-expanded', 'false');
-                                $content.removeClass(openedStateClass).hide().attr('aria-hidden', 'true');
-                            }
-                        }
-                        visibleIndex++;
-                    }
-                });
-
-                if (openedFilterCodes.length === 0) {
-                    if (config.active !== undefined && config.active !== false) {
-                        const defaultActive = Array.isArray(config.active) ? config.active : [config.active];
-
-                        $element.find('[data-role="collapsible"]:visible').each(function (index) {
-                            const $item = $(this);
-                            const $title = $item.find('[data-role="title"]');
-                            const $content = $item.find('[data-role="content"]');
-
-                            if (defaultActive.includes(index)) {
-                                finalActiveConfig.push(index);
-                                $item.addClass(openedStateClass).removeClass('is-closed');
-                                $title.addClass(openedStateClass).attr('aria-selected', 'true').attr('aria-expanded', 'true');
-                                $content.addClass(openedStateClass).show().attr('aria-hidden', 'false');
-                            } else {
-                                $item.removeClass(openedStateClass).addClass('is-closed');
-                                $title.removeClass(openedStateClass).attr('aria-selected', 'false').attr('aria-expanded', 'false');
-                                $content.removeClass(openedStateClass).hide().attr('aria-hidden', 'true');
-                            }
-                        });
-                    } else if (config.multipleCollapsible) {
-                        $element.find('[data-role="collapsible"]:visible').each(function (index) {
-                            finalActiveConfig.push(index);
-                            const $item = $(this);
-                            $item.addClass(openedStateClass).removeClass('is-closed');
-                            $item.find('[data-role="title"]').addClass(openedStateClass).attr('aria-selected', 'true').attr('aria-expanded', 'true');
-                            $item.find('[data-role="content"]').addClass(openedStateClass).show().attr('aria-hidden', 'false');
-                        });
-                    }
-                }
-
-                $element.accordion({
-                    openedState: openedStateClass,
-                    collapsible: config.collapsible !== undefined ? config.collapsible : true,
-                    multipleCollapsible: config.multipleCollapsible !== undefined ? config.multipleCollapsible : true,
-                    active: finalActiveConfig,
-                    animate: false,
-                    scrollToTop: false
-                });
-
-                $element.off('click', '[data-role="title"]').on('click', '[data-role="title"]', (event) => {
-                    if (event.originalEvent) {
-                        event.originalEvent.preventDefault();
-                        event.originalEvent.stopPropagation();
-                    }
-                    event.preventDefault();
-                    event.stopPropagation();
-                });
-            }, 0);
-        }
-    };
 
     return Component.extend({
         defaults: {
@@ -142,6 +35,35 @@ define([
          */
         hasActiveFilters: function () {
             return this._getActiveFiltersList().length > 0;
+        },
+
+        /**
+         * Check if there is at least one filter that actually contains selectable options or an active slider
+         *
+         * @returns {Boolean}
+         */
+        hasFilters: function () {
+            const groups = this.filtersData() || [];
+
+            return groups.some(group => {
+                // Check standard filters that have selectable items available
+                if (group.items && Array.isArray(group.items) && group.items.length > 0) {
+                    return true;
+                }
+
+                // Check slider filters using the exact configuration boundary logic from active list
+                if (group.type === 'slider' && group.sliderConfig && group.sliderConfig.currentValue) {
+                    const val = group.sliderConfig.currentValue;
+                    const min = group.sliderConfig.minValue;
+                    const max = group.sliderConfig.maxValue;
+
+                    if (val && min && max && (parseFloat(val.from) > parseFloat(min) || parseFloat(val.to) < parseFloat(max))) {
+                        return true;
+                    }
+                }
+
+                return false;
+            });
         },
 
         /**
