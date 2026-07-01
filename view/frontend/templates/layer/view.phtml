@@ -1,14 +1,15 @@
 <?php
 /**
- * @var $block \Smile\ElasticsuiteCatalog\Block\Navigation
+ * @var $viewModel \Buhmann\Catalog\ViewModel\LayeredNavigation
+ * @var $block \Magento\LayeredNavigation\Block\Navigation
  * @var $escaper \Magento\Framework\Escaper
  */
+$viewModel = $block->getData('viewModel');
 ?>
 <?php if ($block->canShowBlock()) : ?>
-    <?php $activeFilters = $block->getActiveFilters(); ?>
     <div class="block filter" id="layered-filter-block" data-mage-init='{"collapsible":{"openedState": "active", "collapsible": true, "active": false, "collateral": { "openedState": "filter-active", "element": "body" } }}'>
         <div class="block-title filter-title">
-            <strong><?= $block->escapeHtml(__('Shop By')) ?></strong>
+            <strong><?= $escaper->escapeHtml(__('Shop By')) ?></strong>
         </div>
 
         <div id="layered-filter-block-content" class="block-content filter-content" data-bind="scope: 'layeredNavigation'">
@@ -26,8 +27,8 @@
                             "accordionConfig": {
                                 "openedState": "active",
                                 "collapsible": true,
-                                "active": <?= $block->getActiveFilters() ?: 'false' ?>,
-                                "multipleCollapsible": <?= $block->isInline() ? "false" : "true" ?>
+                                "active": <?= $block->getData('active') ?: 'false' ?>,
+                                "multipleCollapsible": <?= !$viewModel->isMultipleCollapsible() ? "false" : "true" ?>
                             }
                         }
                     }
