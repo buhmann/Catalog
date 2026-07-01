@@ -20,19 +20,7 @@
         <plugin name="buhmann_catalog_filter_items" type="Buhmann\Catalog\Plugin\Model\Layer\Filter\FilterItems" sortOrder="10" />
     </type>
 
-    <type name="Smile\ElasticsuiteCatalog\Block\Navigation\Renderer\Category">
-        <plugin name="buhmann_catalog_category_ajax_renderer" type="Buhmann\Catalog\Plugin\Block\Navigation\Renderer\Category" />
-    </type>
     <type name="Smile\ElasticsuiteCore\Search\Request\ContainerConfiguration">
         <plugin name="buhmann_catalog_force_container_bucket_size" type="Buhmann\Catalog\Plugin\Search\Request\ContainerConfiguration" />
-    </type>
-    <type name="Smile\ElasticsuiteCatalog\Block\Navigation\Renderer\Slider">
-        <plugin name="buhmann_catalog_slider_ajax_template_plugin" type="Buhmann\Catalog\Plugin\Block\Navigation\Renderer\Slider" />
-    </type>
-    <type name="Smile\ElasticsuiteCatalog\Block\Navigation\Renderer\PriceSlider">
-        <plugin name="buhmann_catalog_priceslider_ajax_template_plugin" type="Buhmann\Catalog\Plugin\Block\Navigation\Renderer\PriceSlider" />
-    </type>
-    <type name="Magento\Swatches\Block\LayeredNavigation\RenderLayered">
-        <plugin name="buhmann_catalog_swatch_render_layered" type="Buhmann\Catalog\Plugin\Block\Navigation\Renderer\RenderLayered"/>
     </type>
 </config>
