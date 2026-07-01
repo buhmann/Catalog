@@ -13,9 +13,6 @@ var config = {
             'Magento_Catalog/js/product/list/toolbar': {
                 'Buhmann_Catalog/js/product/list/toolbar': true
             },
-            'Smile_ElasticsuiteCatalog/js/attribute-filter': {
-                'Buhmann_Catalog/js/mixin/attribute-filter': true
-            },
         },
     }
 };
