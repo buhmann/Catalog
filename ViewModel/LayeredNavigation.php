@@ -1,15 +1,15 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright © Buhmann. All rights reserved.
  */
 namespace Buhmann\Catalog\ViewModel;
 
+use Buhmann\Catalog\Api\ViewModel\LayeredNavigationInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\ScopeInterface;
 
-class LayeredNavigation implements ArgumentInterface
+class LayeredNavigation implements LayeredNavigationInterface, ArgumentInterface
 {
     /**
      * @var ScopeConfigInterface
@@ -26,6 +26,16 @@ class LayeredNavigation implements ArgumentInterface
     }
 
     /**
+     * Check if Advanced Catalog extension is enabled
+     *
+     * @return bool
+     */
+    public function isAdvancedCatalogEnabled(): bool
+    {
+        return $this->isAjaxNavEnabled() || $this->isInfiniteScroll();
+    }
+
+    /**
      * Is Infinite Scroll for products list/grid is enabled
      *
      * @return bool
@@ -33,7 +43,7 @@ class LayeredNavigation implements ArgumentInterface
     public function isInfiniteScroll(): bool
     {
         return $this->scopeConfig->isSetFlag(
-            'catalog/layered_navigation/infinite_scroll',
+            self::XML_PATH_INFINITE_SCROLL,
             ScopeInterface::SCOPE_STORE
         );
     }
@@ -46,7 +56,7 @@ class LayeredNavigation implements ArgumentInterface
     public function isSaveScrollHistory(): bool
     {
         return $this->isInfiniteScroll() && $this->scopeConfig->isSetFlag(
-            'catalog/layered_navigation/save_scroll_history',
+            self::XML_PATH_SAVE_SCROLL_HISTORY,
             ScopeInterface::SCOPE_STORE
         );
     }
@@ -59,7 +69,7 @@ class LayeredNavigation implements ArgumentInterface
     public function isAjaxNavEnabled(): bool
     {
         return $this->scopeConfig->isSetFlag(
-            'catalog/layered_navigation/ajax_layered_nav',
+            self::XML_PATH_AJAX_LAYERED_NAV,
             ScopeInterface::SCOPE_STORE
         );
     }
@@ -72,7 +82,7 @@ class LayeredNavigation implements ArgumentInterface
     public function getMaxFilterItems(): int
     {
         $maxSize = $this->scopeConfig->getValue(
-            'catalog/layered_navigation/max_filter_items',
+            self::XML_PATH_MAX_FILTER_ITEMS,
             ScopeInterface::SCOPE_STORE
         );
 
@@ -87,8 +97,31 @@ class LayeredNavigation implements ArgumentInterface
     public function displayProductCount(): bool
     {
         return $this->scopeConfig->isSetFlag(
-            'catalog/layered_navigation/display_product_count',
+            self::XML_PATH_DISPLAY_PRODUCT_COUNT,
             ScopeInterface::SCOPE_STORE
         );
+    }
+
+    /**
+     * Check if multi-select is enabled for filters
+     *
+     * @return bool
+     */
+    public function isMultiSelectEnabled(): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_IS_MULTIPLE_SELECT,
+            ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    /**
+     * Check if multiple collapsible items are allowed
+     *
+     * @return bool
+     */
+    public function isMultipleCollapsible(): bool
+    {
+        return false;
     }
 }

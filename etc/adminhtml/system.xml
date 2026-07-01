@@ -9,31 +9,38 @@
     <system>
         <section id="catalog">
             <group id="layered_navigation">
-                <field id="separator" translate="label" type="label" sortOrder="39" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label><![CDATA[<hr style="border: 0; border-top: 1px solid #dfdfdf; margin: 15px 0;" />]]></label>
-                    <frontend_model>Magento\Config\Block\System\Config\Form\Field\Heading</frontend_model>
-                </field>
-                <field id="infinite_scroll" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <field id="infinite_scroll" translate="label" type="select" sortOrder="401" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Products grid/list Infinite Scroll</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="save_scroll_history" translate="label" type="select" sortOrder="41" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <field id="save_scroll_history" translate="label" type="select" sortOrder="402" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Save Infinite Scroll History</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="infinite_scroll">1</field>
                     </depends>
                 </field>
-                <field id="ajax_layered_nav" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <field id="ajax_layered_nav" translate="label" type="select" sortOrder="403" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Enable AJAX Navigation and Toolbar</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="max_filter_items" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <field id="is_multiple_select" translate="label" type="select" sortOrder="404" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Enable Multiple Select for Filters</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="ajax_layered_nav">1</field>
+                    </depends>
+                </field>
+                <field id="max_filter_items" translate="label" type="text" sortOrder="405" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Visible options count by default</label>
                     <validate>validate-digits validate-zero-or-greater validate-number-range number-range-5-9999</validate>
                     <depends>
                         <field id="ajax_layered_nav">1</field>
                     </depends>
+                </field>
+                <field id="advanced_catalog_separator" translate="label" type="label" sortOrder="410" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label><![CDATA[<hr style="border: 0; border-top: 1px solid #dfdfdf; margin: 15px 0;" />]]></label>
+                    <frontend_model>Magento\Config\Block\System\Config\Form\Field\Heading</frontend_model>
                 </field>
             </group>
         </section>
