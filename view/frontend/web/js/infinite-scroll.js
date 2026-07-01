@@ -21,7 +21,7 @@ define([
             loaderTopWrapper: '.scroll-loader-top',
             loaderBottomWrapper: '.scroll-loader-bottom',
             loaderImage: '',
-            infiniteScroll: false,
+            infiniteScroll: true,
             savePageHistory: false,
             pageParam: 'p',
         },

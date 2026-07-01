@@ -1,47 +1,45 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
- */
-
-/**
+ * Copyright © Buhmann. All rights reserved.
+ *
  * Layered navigation js initialize template
  *
  * @var $block \Magento\Framework\View\Element\Template
+ * @var $viewModel \Buhmann\Catalog\ViewModel\LayeredNavigation
  */
-
-/** @var \Buhmann\Catalog\ViewModel\LayeredNavigation $viewModel */
 $viewModel = $block->getData('config');
 ?>
-<?php /** @var \Magento\Framework\View\Element\Template $block */ ?>
-<div style="display:none;" data-bind="scope: 'catalogViewBinder'"></div>
+<?php if ($viewModel->isAdvancedCatalogEnabled()): ?>
+    <div style="display:none;" data-bind="scope: 'catalogViewBinder'"></div>
 
-<script type="text/x-magento-init">
-    {
-        "[data-bind=\"scope: 'catalogViewBinder'\"]": {
-            "Magento_Ui/js/core/app": {
-                "components": {
-                    "catalogViewBinder": {
-                        "component": "Buhmann_Catalog/js/catalog-view-binder"
+    <script type="text/x-magento-init">
+        {
+            "[data-bind=\"scope: 'catalogViewBinder'\"]": {
+                "Magento_Ui/js/core/app": {
+                    "components": {
+                        "catalogViewBinder": {
+                            "component": "Buhmann_Catalog/js/catalog-view-binder"
+                        }
                     }
                 }
             }
         }
-    }
-</script>
+    </script>
 
-<script type="text/x-magento-init">
-{
-    "*": {
-        "infiniteScroll": {
-            "productWrapper": ".products.list.items",
-            "productItem": ".product-item",
-            "nextBtn": ".pages-item-next a",
-            "pagination": ".pages",
-            "loaderImage": "<?php echo $block->getViewFileUrl('images/loader-2.gif'); ?>",
-            "infiniteScroll": <?= $viewModel && $viewModel->isInfiniteScroll() ? 'true' : 'false' ?>,
-            "savePageHistory": <?= $viewModel && $viewModel->isSaveScrollHistory() ? 'true' : 'false' ?>
+    <?php if ($viewModel->isInfiniteScroll()): ?>
+    <script type="text/x-magento-init">
+    {
+        "*": {
+            "infiniteScroll": {
+                "productWrapper": ".products.list.items",
+                "productItem": ".product-item",
+                "nextBtn": ".pages-item-next a",
+                "pagination": ".pages",
+                "loaderImage": "<?php echo $block->getViewFileUrl('images/loader-2.gif'); ?>",
+                "savePageHistory": <?= $viewModel && $viewModel->isSaveScrollHistory() ? 'true' : 'false' ?>
+            }
         }
     }
-}
-</script>
+    </script>
+    <?php endif; ?>
+<?php endif; ?>
