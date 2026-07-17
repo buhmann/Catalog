@@ -1,25 +1,33 @@
 <?php
+/**
+ * Copyright © Buhmann. All rights reserved.
+ */
+declare(strict_types=1);
 
 namespace Buhmann\Catalog\Plugin\Controller;
 
-use Buhmann\Catalog\ViewModel\LayeredNavigation;
+use Buhmann\Catalog\Api\ViewModel\LayeredNavigationInterface as CatalogViewModel;
+use Magento\Catalog\Block\Product\ListProduct;
+use Magento\Catalog\Block\Product\ProductList\Toolbar;
 use Magento\Catalog\Controller\Category\View as CategoryViewController;
+use Magento\Catalog\Model\Layer\Filter\AbstractFilter;
+use Magento\Catalog\Model\Layer\Filter\FilterInterface;
+use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductCollectionFactory;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\View\LayoutInterface;
 use Magento\Framework\View\Result\Page;
 use Magento\Framework\App\RequestInterface;
+use Magento\LayeredNavigation\Block\Navigation as NavigationBlock;
 use Magento\Store\Model\StoreManagerInterface;
-use ReflectionMethod;
-use Smile\ElasticsuiteCatalog\Block\Navigation as ElasticNavigationBlock;
 use Magento\Swatches\Helper\Data as SwatchHelper;
 use Magento\Swatches\Helper\Media as SwatchMediaHelper;
-use Magento\Catalog\Model\Layer\Filter\FilterInterface;
+use Magento\Theme\Block\Html\Pager;
+use ReflectionMethod;
 use Smile\ElasticsuiteCatalog\Block\Navigation\Renderer\PriceSlider;
 use Smile\ElasticsuiteCatalog\Block\Navigation\Renderer\Slider;
 use Smile\ElasticsuiteCatalog\Model\Layer\Filter\Decimal;
 use Smile\ElasticsuiteCatalog\Model\Layer\Filter\Price;
-use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductCollectionFactory;
 
 class CategoryView
 {
@@ -44,9 +52,9 @@ class CategoryView
     private SwatchMediaHelper $swatchMediaHelper;
 
     /**
-     * @var LayeredNavigation
+     * @var CatalogViewModel
      */
-    private LayeredNavigation $layeredNavigationViewModel;
+    private CatalogViewModel $layeredNavigationViewModel;
 
     /**
      * @var ProductCollectionFactory
@@ -63,7 +71,7 @@ class CategoryView
      * @param RequestInterface $request
      * @param SwatchHelper $swatchHelper
      * @param SwatchMediaHelper $swatchMediaHelper
-     * @param LayeredNavigation $layeredNavigationViewModel
+     * @param CatalogViewModel $layeredNavigationViewModel
      * @param ProductCollectionFactory $productCollectionFactory
      * @param StoreManagerInterface $storeManager
      */
@@ -72,7 +80,7 @@ class CategoryView
         RequestInterface $request,
         SwatchHelper $swatchHelper,
         SwatchMediaHelper $swatchMediaHelper,
-        LayeredNavigation $layeredNavigationViewModel,
+        CatalogViewModel $layeredNavigationViewModel,
         ProductCollectionFactory $productCollectionFactory,
         StoreManagerInterface $storeManager
     ) {
@@ -86,39 +94,37 @@ class CategoryView
     }
 
     /**
+     * Add body classes for infinite scroll and AJAX navigation
+     *
      * @param CategoryViewController $subject
      * @param mixed $result
      * @return mixed
+     * @throws LocalizedException
      */
     public function afterExecute(CategoryViewController $subject, $result)
     {
-        if ($result instanceof Page) {
-            if ($this->layeredNavigationViewModel->isInfiniteScroll()) {
-                $result->getConfig()->addBodyClass('products-infinite-scroll');
-            }
-            if ($this->layeredNavigationViewModel->isAjaxNavEnabled()) {
-                $result->getConfig()->addBodyClass('ajax-layered-navigation');
-            }
+        if (!($result instanceof Page)) {
+            return $result;
         }
 
-        return $result;
-    }
-
-    /**
-     * Intercept execution to build data payload for the AJAX pool
-     */
-    public function aroundExecute(CategoryViewController $subject, callable $proceed)
-    {
-        $pageResult = $proceed();
-
-        if (!($pageResult instanceof Page) || !$this->request->getParam('isAjax')) {
-            return $pageResult;
+        if ($this->layeredNavigationViewModel->isInfiniteScroll()) {
+            $result->getConfig()->addBodyClass('products-infinite-scroll');
+        }
+        if ($this->layeredNavigationViewModel->isAjaxNavEnabled()) {
+            $result->getConfig()->addBodyClass('ajax-layered-navigation');
         }
 
-        $layout = $pageResult->getLayout();
+        if (!$this->request->getParam('isAjax')) {
+            return $result;
+        }
 
+        $layout = $result->getLayout();
+
+        /** @var ListProduct $productsBlock */
         $productsBlock = $layout->getBlock('category.products.list');
+        /** @var Toolbar $toolbarBlock */
         $toolbarBlock = $layout->getBlock('product_list_toolbar');
+        /** @var Pager $paginationBlock */
         $paginationBlock = $layout->getBlock('product_list_toolbar_pager');
 
         $emptyProductCollection = null;
@@ -133,23 +139,22 @@ class CategoryView
             $paginationBlock->setCollection($emptyProductCollection);
         }
 
-        // 1. Collect standard HTML payloads from native blocks
         $productsHtml = $productsBlock ? $productsBlock->toHtml() : '';
         $toolbarHtml = $toolbarBlock ? $toolbarBlock->toHtml() : '';
         $paginationHtml = $paginationBlock ? $paginationBlock->toHtml() : '';
 
-        // HARD FIX: Clean up any traces of internal isAjax parameters inside the generated HTML chunks
-        $productsHtml = str_replace(['?isAjax=1&amp;', '?isAjax=1&', '&amp;isAjax=1', '&isAjax=1'], '', $productsHtml);
-        $toolbarHtml = str_replace(['?isAjax=1&amp;', '?isAjax=1&', '&amp;isAjax=1', '&isAjax=1'], '', $toolbarHtml);
-        $paginationHtml = str_replace(['?isAjax=1&amp;', '?isAjax=1&', '&amp;isAjax=1', '&isAjax=1'], '', $paginationHtml);
+        $productsHtml = $this->cleanAjaxParams($productsHtml);
+        $toolbarHtml = $this->cleanAjaxParams($toolbarHtml);
+        $paginationHtml = $this->cleanAjaxParams($paginationHtml);
 
-        // 2. Extract structured filters JSON configuration for ElasticSuite
         $filtersData = [];
-        /** @var ElasticNavigationBlock $navigationBlock */
+
+        /** @var NavigationBlock $navigationBlock */
         $navigationBlock = $layout->getBlock('catalog.leftnav');
 
         if ($navigationBlock && $navigationBlock->canShowBlock()) {
             foreach ($navigationBlock->getFilters() as $filter) {
+                /** @var AbstractFilter $filter */
                 if (!$filter->getItemsCount()) {
                     continue;
                 }
@@ -167,7 +172,7 @@ class CategoryView
             'products'   => $productsHtml,
             'toolbar'    => $toolbarHtml,
             'pagination' => $paginationHtml,
-            'filters'    => $filtersData
+            'filters'    => $filtersData,
         ]);
 
         return $jsonResult;
@@ -194,7 +199,7 @@ class CategoryView
             'maxSize'             => $this->layeredNavigationViewModel->getMaxFilterItems(),
             'hasMoreItems'        => count($filter->getItems()) > $this->layeredNavigationViewModel->getMaxFilterItems(),
             'displayProductCount' => (int)$this->layeredNavigationViewModel->displayProductCount(),
-            'items'               => []
+            'items'               => [],
         ];
 
         if ($filter instanceof Decimal || $filter instanceof Price) {
@@ -223,11 +228,12 @@ class CategoryView
         $swatchDataArray = [];
         $textToIdMap = [];
 
+        // Check if this is a swatch attribute
         if ($attributeModel && $this->swatchHelper->isSwatchAttribute($attributeModel)) {
             $isSwatch = true;
             $data['type'] = 'swatch';
 
-            // Map lowercase option labels to their numeric option IDs
+            // Map option labels to their numeric option IDs
             foreach ($attributeModel->getOptions() as $option) {
                 $label = $option->getLabel();
                 $id = $option->getValue();
@@ -239,7 +245,7 @@ class CategoryView
             // Collect only valid numeric option IDs present in the current filter items
             $numericOptionIds = [];
             foreach ($filter->getItems() as $item) {
-                $itemValueKey = strtolower(trim($item->getValueString()));
+                $itemValueKey = strtolower(trim((string)$item->getValueString()));
                 if (isset($textToIdMap[$itemValueKey])) {
                     $numericOptionIds[] = $textToIdMap[$itemValueKey];
                 }
@@ -252,43 +258,38 @@ class CategoryView
 
         // 3. Build final items collection with structural optimization
         foreach ($filter->getItems() as $item) {
-            $optionValueString = $item->getValueString();
+            $optionValueString = (string)$item->getValueString();
             $itemValueKey = strtolower(trim($optionValueString));
 
             $itemData = [
                 'label'       => (string)$item->getLabel(),
                 'count'       => (int)$item->getCount(),
-                'url'         => (string)$item->getUrl(),
+                'url'         => html_entity_decode($item->getData('url') ?? $item->getUrl()),
                 'is_selected' => (bool)$item->getIsSelected(),
                 'value'       => $optionValueString,
                 'swatch_value'=> null,
                 'swatch_type' => null
             ];
 
-            // Guard clause: skip processing if it's not a swatch or option mapping doesn't exist
-            if (!$isSwatch || !isset($textToIdMap[$itemValueKey])) {
-                $data['items'][] = $itemData;
-                continue;
-            }
+            // Handle swatch attributes
+            if ($isSwatch && isset($textToIdMap[$itemValueKey])) {
+                $numericId = $textToIdMap[$itemValueKey];
+                $swatchItem = $swatchDataArray[$numericId] ?? null;
 
-            $numericId = $textToIdMap[$itemValueKey];
-            $swatchItem = $swatchDataArray[$numericId] ?? null;
+                if (is_array($swatchItem)) {
+                    $rawType = isset($swatchItem['type']) ? str_replace(['"', "'"], '', (string)$swatchItem['type']) : '0';
+                    $rawValue = isset($swatchItem['value']) ? str_replace(['"', "'"], '', (string)$swatchItem['value']) : '';
 
-            if (is_array($swatchItem)) {
-                // Securely extract and sanitize raw string inputs with early fallback values
-                $rawType = isset($swatchItem['type']) ? str_replace(['"', "'"], '', $swatchItem['type']) : '0';
-                $rawValue = isset($swatchItem['value']) ? str_replace(['"', "'"], '', $swatchItem['value']) : '';
+                    $cleanType = trim($rawType);
+                    $cleanValue = trim($rawValue);
 
-                $cleanType = trim($rawType);
-                $cleanValue = trim($rawValue);
+                    $itemData['swatch_type'] = (int)$cleanType;
 
-                $itemData['swatch_type'] = (int)$cleanType;
-
-                // Resolve values based on strict type match (Type 2 is an image swatch)
-                if ($itemData['swatch_type'] === 2 && $cleanValue !== '') {
-                    $itemData['swatch_value'] = $this->swatchMediaHelper->getSwatchAttributeImage($cleanType, $cleanValue);
-                } else {
-                    $itemData['swatch_value'] = $cleanValue !== '' ? $cleanValue : null;
+                    if ($itemData['swatch_type'] === 2 && $cleanValue !== '') {
+                        $itemData['swatch_value'] = $this->swatchMediaHelper->getSwatchAttributeImage($cleanType, $cleanValue);
+                    } else {
+                        $itemData['swatch_value'] = $cleanValue !== '' ? $cleanValue : null;
+                    }
                 }
             }
 
@@ -296,5 +297,23 @@ class CategoryView
         }
 
         return $data;
+    }
+
+    /**
+     * Clean up isAjax parameters from URLs in HTML
+     *
+     * @param string $html
+     * @return string
+     */
+    private function cleanAjaxParams(string $html): string
+    {
+        $patterns = [
+            '/\?isAjax=1&amp;/',
+            '/\?isAjax=1&/',
+            '/&amp;isAjax=1/',
+            '/&isAjax=1/'
+        ];
+
+        return preg_replace($patterns, '', $html) ?? $html;
     }
 }
