@@ -13,6 +13,7 @@
                 <save_scroll_history>0</save_scroll_history>
                 <ajax_layered_nav>1</ajax_layered_nav>
                 <max_filter_items>10</max_filter_items>
+                <is_multiple_select>1</is_multiple_select>
             </layered_navigation>
         </catalog>
     </default>

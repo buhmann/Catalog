@@ -9,8 +9,7 @@
     <module name="Buhmann_Catalog">
         <sequence>
             <module name="Magento_Catalog" />
-            <module name="Magento_LayeredNavigation"/>
-            <module name="Smile_ElasticsuiteCatalog"/>
+            <module name="Magento_LayeredNavigation" />
         </sequence>
     </module>
 </config>

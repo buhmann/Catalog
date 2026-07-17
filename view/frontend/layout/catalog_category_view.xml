@@ -10,7 +10,7 @@
         <referenceContainer name="content">
             <block class="Magento\Framework\View\Element\Template" name="buhmann.layered_navigation" template="Buhmann_Catalog::js/layered_navigation.phtml">
                 <arguments>
-                    <argument name="config" xsi:type="object">Buhmann\Catalog\ViewModel\LayeredNavigation</argument>
+                    <argument name="config" xsi:type="object">Buhmann\Catalog\Api\ViewModel\LayeredNavigationInterface</argument>
                 </arguments>
             </block>
         </referenceContainer>

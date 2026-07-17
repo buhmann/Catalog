@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace Buhmann\Catalog\Plugin\Block;
 
 use Magento\LayeredNavigation\Block\Navigation as SubjectBlock;
-use Buhmann\Catalog\ViewModel\LayeredNavigation as CatalogViewModel;
+use Buhmann\Catalog\Api\ViewModel\LayeredNavigationInterface as CatalogViewModel;
 
 class Navigation
 {

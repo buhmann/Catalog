@@ -6,19 +6,22 @@ declare(strict_types=1);
 
 namespace Buhmann\Catalog\Plugin\Model\Layer\Filter;
 
-use Buhmann\Catalog\ViewModel\LayeredNavigation;
+use Buhmann\Catalog\Api\ViewModel\LayeredNavigationInterface as CatalogViewModel;
 use Magento\Catalog\Model\Layer\Filter\FilterInterface;
 use Magento\Framework\Exception\LocalizedException;
 
 class FilterItems
 {
     /**
-     * @var LayeredNavigation
+     * @var CatalogViewModel
      */
-    private LayeredNavigation $viewModel;
+    private CatalogViewModel $viewModel;
 
+    /**
+     * @param CatalogViewModel $viewModel
+     */
     public function __construct(
-        LayeredNavigation $viewModel
+        CatalogViewModel $viewModel
     ) {
         $this->viewModel = $viewModel;
     }
@@ -40,6 +43,7 @@ class FilterItems
         $selectedValues = $this->getSelectedValues($subject);
 
         foreach ($result as $item) {
+            /** @var \Magento\Catalog\Model\Layer\Filter\Item $item */
             $isSelected = in_array($item->getValue(), $selectedValues, true);
 
             if ($isSelected) {

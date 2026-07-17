@@ -5,12 +5,13 @@
  */
 namespace Buhmann\Catalog\Plugin\Block\Product\ProductList;
 
-use Buhmann\Catalog\ViewModel\LayeredNavigation;
+use Buhmann\Catalog\Api\ViewModel\LayeredNavigationInterface as CatalogViewModel;
+use Magento\Catalog\Block\Product\ProductList\Toolbar as Subject;
 use Magento\Framework\Serialize\Serializer\Json;
 
 class Toolbar
 {
-    private LayeredNavigation $viewModel;
+    private CatalogViewModel $viewModel;
 
     /**
      * @var Json
@@ -18,11 +19,11 @@ class Toolbar
     private Json $jsonSerializer;
 
     /**
-     * @param LayeredNavigation $viewModel
+     * @param CatalogViewModel $viewModel
      * @param Json $jsonSerializer
      */
     public function __construct(
-        LayeredNavigation $viewModel,
+        CatalogViewModel $viewModel,
         Json $jsonSerializer
     ) {
         $this->viewModel = $viewModel;
@@ -32,11 +33,11 @@ class Toolbar
     /**
      * Retrieve widget options in json format
      *
-     * @param \Magento\Catalog\Block\Product\ProductList\Toolbar $subject
+     * @param Subject $subject
      * @param string $result
      * @return string
      */
-    public function afterGetWidgetOptionsJson(\Magento\Catalog\Block\Product\ProductList\Toolbar $subject, string $result): string
+    public function afterGetWidgetOptionsJson(Subject $subject, string $result): string
     {
         try {
             $options = $this->jsonSerializer->unserialize($result);

@@ -36,6 +36,13 @@ interface LayeredNavigationInterface
     public function isInfiniteScroll(): bool;
 
     /**
+     * Is Save Scroll history (add &p= to url)
+     *
+     * @return bool
+     */
+    public function isSaveScrollHistory(): bool;
+
+    /**
      * Check if AJAX Navigation is enabled
      *
      * @return bool
@@ -43,9 +50,30 @@ interface LayeredNavigationInterface
     public function isAjaxNavEnabled(): bool;
 
     /**
+     * Get maximum visible filter items count
+     *
+     * @return int
+     */
+    public function getMaxFilterItems(): int;
+
+    /**
+     * Check if product count should be displayed next to filter options
+     *
+     * @return bool
+     */
+    public function displayProductCount(): bool;
+
+    /**
      * Check if multi-select is enabled for filters
      *
      * @return bool
      */
     public function isMultiSelectEnabled(): bool;
+
+    /**
+     * Check if multiple collapsible items are allowed
+     *
+     * @return bool
+     */
+    public function isMultipleCollapsible(): bool;
 }
