@@ -8,6 +8,7 @@ define([
     const NavigationPool = function () {
         this.isLoading = ko.observable(false);
         this.filtersData = ko.observableArray([]);
+        this.activeFilters = ko.observableArray([]);
         this.productsHtml = ko.observable('');
         this.toolbarHtml = ko.observable('');
         this.paginationHtml = ko.observable('');
@@ -61,6 +62,10 @@ define([
                         });
 
                         this.filtersData(response.filters);
+                    }
+
+                    if (response.activeFilters) {
+                        this.activeFilters(response.activeFilters);
                     }
 
                     this.toolbarHtml(response.toolbar);
