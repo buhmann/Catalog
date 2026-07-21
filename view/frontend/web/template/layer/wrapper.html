@@ -63,7 +63,8 @@
                         'components': {
                             [$data.code + 'Filter']: {
                                 'component': 'Buhmann_Catalog/js/filter/swatch',
-                                'attributeCode': $data.code
+                                'attributeCode': $data.code,
+                                'isMultiSelect': $data.isMultiSelect
                             }
                         }
                     }
@@ -111,7 +112,8 @@
                             'catFilter': {
                                 'component': 'Buhmann_Catalog/js/filter/category',
                                 'isMultipleSelectEnabled': false,
-                                'filterCode': 'cat'
+                                'filterCode': 'cat',
+                                'isMultiSelect': $data.isMultiSelect
                             }
                         }
                     }
@@ -139,7 +141,8 @@
                                 'items': $data.items,
                                 'maxSize': $data.maxSize,
                                 'hasMoreItems': $data.hasMoreItems,
-                                'displayProductCount': $data.displayProductCount
+                                'displayProductCount': $data.displayProductCount,
+                                'isMultiSelect': $data.isMultiSelect
                             }
                         }
                     }

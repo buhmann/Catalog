@@ -5,5 +5,5 @@
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <preference for="Buhmann\Catalog\Api\ViewModel\LayeredNavigationInterface" type="Buhmann\Catalog\ViewModel\LayeredNavigation"/>
+    <preference for="Buhmann\Catalog\Api\ViewModel\LayeredNavigationInterface" type="Buhmann\Catalog\ViewModel\LayeredNavigation" />
 </config>

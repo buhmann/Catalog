@@ -113,8 +113,8 @@ class CategoryView
     }
 
     /**
-     *  Plugin for category view controller to handle AJAX navigation
-     *  Returns JSON response with products, filters, and active filters data
+     * Plugin for category view controller to handle AJAX navigation
+     * Returns JSON response with products, filters, and active filters data
      *
      * @param CategoryViewController $subject
      * @param mixed $result
@@ -224,6 +224,7 @@ class CategoryView
             'maxSize'             => $this->layeredNavigationViewModel->getMaxFilterItems(),
             'hasMoreItems'        => count($filter->getItems()) > $this->layeredNavigationViewModel->getMaxFilterItems(),
             'displayProductCount' => (int)$this->layeredNavigationViewModel->displayProductCount(),
+            'isMultiSelect'       => $this->layeredNavigationViewModel->isMultiSelectEnabled(),
             'items'               => [],
         ];
 
