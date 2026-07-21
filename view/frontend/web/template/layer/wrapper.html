@@ -78,30 +78,6 @@
         </div>
         <!-- /ko -->
 
-        <!-- ko if: $data.type === 'slider' -->
-        <div class="filter-options-item"
-             data-ajax-role="collapsible"
-             data-bind="attr: {'data-filter-code': $data.code},
-                mageInit: {
-                    'Magento_Ui/js/core/app': {
-                        'components': {
-                            [$data.code + 'Filter']: {
-                                'component': 'Buhmann_Catalog/js/filter/slider',
-                                'filterCode': $data.code,
-                                'sliderConfig': $data.sliderConfig
-                            }
-                        }
-                    }
-                }, visible: require('uiRegistry').get($data.code + 'Filter') ? require('uiRegistry').get($data.code + 'Filter').visible : true">
-            <div class="filter-options-title" data-ajax-role="title" data-bind="text: $data.label, clickBubble: false"></div>
-            <div class="filter-options-content" data-ajax-role="content">
-                <div data-bind="scope: $data.code + 'Filter'">
-                    <!-- ko template: getTemplate() --><!-- /ko -->
-                </div>
-            </div>
-        </div>
-        <!-- /ko -->
-
         <!-- ko if: $data.code === 'cat' -->
         <div class="filter-options-item"
              data-ajax-role="collapsible"

@@ -22,15 +22,9 @@ use Magento\Framework\View\LayoutInterface;
 use Magento\Framework\View\Result\Page;
 use Magento\Framework\App\RequestInterface;
 use Magento\LayeredNavigation\Block\Navigation as NavigationBlock;
-use Magento\Store\Model\StoreManagerInterface;
 use Magento\Swatches\Helper\Data as SwatchHelper;
 use Magento\Swatches\Helper\Media as SwatchMediaHelper;
 use Magento\Theme\Block\Html\Pager;
-use ReflectionMethod;
-use Smile\ElasticsuiteCatalog\Block\Navigation\Renderer\PriceSlider;
-use Smile\ElasticsuiteCatalog\Block\Navigation\Renderer\Slider;
-use Smile\ElasticsuiteCatalog\Model\Layer\Filter\Decimal;
-use Smile\ElasticsuiteCatalog\Model\Layer\Filter\Price;
 
 class CategoryView
 {
@@ -75,11 +69,6 @@ class CategoryView
     protected UrlInterface $_url;
 
     /**
-     * @var StoreManagerInterface
-     */
-    private StoreManagerInterface $storeManager;
-
-    /**
      * @param JsonFactory $jsonFactory
      * @param RequestInterface $request
      * @param SwatchHelper $swatchHelper
@@ -88,7 +77,6 @@ class CategoryView
      * @param ProductCollectionFactory $productCollectionFactory
      * @param PriceCurrencyInterface $priceCurrency
      * @param UrlInterface $url
-     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         JsonFactory $jsonFactory,
@@ -98,8 +86,7 @@ class CategoryView
         CatalogViewModel $layeredNavigationViewModel,
         ProductCollectionFactory $productCollectionFactory,
         PriceCurrencyInterface $priceCurrency,
-        UrlInterface $url,
-        StoreManagerInterface $storeManager
+        UrlInterface $url
     ) {
         $this->jsonFactory = $jsonFactory;
         $this->request = $request;
@@ -109,7 +96,6 @@ class CategoryView
         $this->productCollectionFactory = $productCollectionFactory;
         $this->priceCurrency = $priceCurrency;
         $this->_url = $url;
-        $this->storeManager = $storeManager;
     }
 
     /**
@@ -209,9 +195,9 @@ class CategoryView
      * @param FilterInterface $filter
      * @param LayoutInterface $layout
      * @return array Filter data with items, labels, URLs, and swatch information
-     * @throws \ReflectionException|LocalizedException
+     * @throws LocalizedException
      */
-    private function extractFilterMetadata(FilterInterface $filter, LayoutInterface $layout): array
+    public function extractFilterMetadata(FilterInterface $filter, LayoutInterface $layout): array
     {
         $attributeModel = $filter->hasAttributeModel() ? $filter->getAttributeModel() : null;
         $requestVar = $filter->getRequestVar();
@@ -219,36 +205,13 @@ class CategoryView
         $data = [
             'code'                => $requestVar,
             'label'               => __($filter->getName())->render(),
-            'type'                => 'text',
-            'sliderConfig'        => null,
+            'type'                => $filter->getFrontendType() ?? 'text',
             'maxSize'             => $this->layeredNavigationViewModel->getMaxFilterItems(),
             'hasMoreItems'        => count($filter->getItems()) > $this->layeredNavigationViewModel->getMaxFilterItems(),
             'displayProductCount' => (int)$this->layeredNavigationViewModel->displayProductCount(),
             'isMultiSelect'       => $this->layeredNavigationViewModel->isMultiSelectEnabled(),
             'items'               => [],
         ];
-
-        if ($filter instanceof Decimal || $filter instanceof Price) {
-            $data['type'] = 'slider';
-            $blockClass = ($filter instanceof Price) ? PriceSlider::class : Slider::class;
-
-            /** @var Slider $sliderBlock */
-            $sliderBlock = $layout->createBlock($blockClass);
-
-            if ($sliderBlock) {
-                $sliderBlock->render($filter);
-
-                $configMethod = new ReflectionMethod(get_class($sliderBlock), 'getConfig');
-                $configMethod->setAccessible(true);
-                $data['sliderConfig'] = $configMethod->invoke($sliderBlock);
-
-                if ($filter instanceof Price) {
-                    $data['sliderConfig']['currencySymbol'] = $this->storeManager->getStore()->getCurrentCurrency()->getCurrencySymbol();
-                }
-
-                return $data;
-            }
-        }
 
         $isSwatch = false;
         $swatchDataArray = [];

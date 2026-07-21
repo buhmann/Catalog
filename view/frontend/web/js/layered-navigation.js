@@ -37,7 +37,7 @@ define([
         },
 
         /**
-         * Check if there is at least one filter that actually contains selectable options or an active slider
+         * Check if there is at least one filter that actually contains selectable options
          *
          * @returns {Boolean}
          */
@@ -45,23 +45,7 @@ define([
             const groups = this.filtersData() || [];
 
             return groups.some(group => {
-                // Check standard filters that have selectable items available
-                if (group.items && Array.isArray(group.items) && group.items.length > 0) {
-                    return true;
-                }
-
-                // Check slider filters using the exact configuration boundary logic from active list
-                if (group.type === 'slider' && group.sliderConfig && group.sliderConfig.currentValue) {
-                    const val = group.sliderConfig.currentValue;
-                    const min = group.sliderConfig.minValue;
-                    const max = group.sliderConfig.maxValue;
-
-                    if (val && min && max && (parseFloat(val.from) > parseFloat(min) || parseFloat(val.to) < parseFloat(max))) {
-                        return true;
-                    }
-                }
-
-                return false;
+                return group.items && Array.isArray(group.items) && group.items.length > 0;
             });
         },
 
