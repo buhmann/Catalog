@@ -13,6 +13,7 @@ use Magento\Catalog\Block\Product\ProductList\Toolbar;
 use Magento\Catalog\Controller\Category\View as CategoryViewController;
 use Magento\Catalog\Model\Layer\Filter\AbstractFilter;
 use Magento\Catalog\Model\Layer\Filter\FilterInterface;
+use Magento\Catalog\Model\Layer\Filter\Item as FilterItem;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductCollectionFactory;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Exception\LocalizedException;
@@ -234,9 +235,14 @@ class CategoryView
             // Collect valid numeric option IDs present in the current filter items
             $numericOptionIds = [];
             foreach ($filter->getItems() as $item) {
+                /** @var $item FilterItem */
                 $itemValueKey = strtolower(trim((string)$item->getValueString()));
+                $itemLabelKey = strtolower(trim((string)$item->getLabel()));
+
                 if (isset($textToIdMap[$itemValueKey])) {
                     $numericOptionIds[] = $textToIdMap[$itemValueKey];
+                } elseif (isset($textToIdMap[$itemLabelKey])) {
+                    $numericOptionIds[] = $textToIdMap[$itemLabelKey];
                 }
             }
 
@@ -249,6 +255,7 @@ class CategoryView
         foreach ($filter->getItems() as $item) {
             $optionValueString = (string)$item->getValueString();
             $itemValueKey = strtolower(trim($optionValueString));
+            $itemLabelKey = strtolower(trim((string)$item->getLabel()));
 
             $itemData = [
                 'label'       => (string)$item->getLabel(),
@@ -261,8 +268,8 @@ class CategoryView
             ];
 
             // Handle swatch attributes
-            if ($isSwatch && isset($textToIdMap[$itemValueKey])) {
-                $numericId = $textToIdMap[$itemValueKey];
+            if ($isSwatch && (isset($textToIdMap[$itemValueKey]) || isset($textToIdMap[$itemLabelKey]))) {
+                $numericId = $textToIdMap[$itemValueKey] ?? $textToIdMap[$itemLabelKey];
                 $swatchItem = $swatchDataArray[$numericId] ?? null;
 
                 if (is_array($swatchItem)) {

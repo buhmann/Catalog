@@ -75,7 +75,7 @@ class Attribute
         $attribute = $subject->getAttributeModel();
         $productCollection = $subject->getLayer()->getProductCollection();
 
-        // Apply filter to collection with OR logic
+        // Apply filter to collection
         $productCollection->addFieldToFilter(
             $attribute->getAttributeCode(),
             $attributeValue
@@ -92,7 +92,32 @@ class Attribute
         $item = $this->createItem($subject, $label, $attributeValue);
         $subject->getLayer()->getState()->addFilter($item);
 
+        if ($this->isSwatchAttribute($attribute)) {
+            $subject->setItems([]);
+        }
+
         return $subject;
+    }
+
+    /**
+     * Check if attribute is a swatch attribute
+     *
+     * @param mixed $attribute The attribute model
+     * @return bool True if swatch attribute, false otherwise
+     */
+    private function isSwatchAttribute($attribute): bool
+    {
+        if (!$attribute) {
+            return false;
+        }
+
+        $additionalData = $attribute->getAdditionalData() ?? [];
+        if (is_string($additionalData)) {
+            $additionalData = json_decode($additionalData, true);
+        }
+
+        return isset($additionalData['swatch_input_type'])
+            && in_array($additionalData['swatch_input_type'], ['visual', 'text'], true);
     }
 
     /**
